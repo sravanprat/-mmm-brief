@@ -1626,7 +1626,10 @@ function buildChapterNav() {
       <div class="ch-info">
         <div class="ch-title">${ch.short}</div>
         <div class="ch-meta">${ch.content[STATE.member].headline.slice(0,32)}…</div>
-        <div style="margin-top:4px"><span class="ch-expertise ${exp}">${expLabel}</span></div>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:4px">
+          <span class="ch-expertise ${exp}">${expLabel}</span>
+          <span class="ch-expertise" style="background:rgba(255,255,255,.06);color:var(--muted)">${STATE.depth === 'deep' ? 'Deep' : STATE.depth === 'short' ? 'Short' : 'Standard'}</span>
+        </div>
       </div>
       <div class="ch-time">${ch.readTime[STATE.member]}m</div>`;
     item.onclick = () => loadChapter(i);
@@ -2262,6 +2265,7 @@ function switchExpertise(level) {
 
 function switchDepth(level) {
   STATE.depth = level;
+  buildChapterNav();
   reRenderBrief();
   updateControlsBar(CHAPTERS[STATE.chapter]);
 }
