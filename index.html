@@ -889,6 +889,9 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
         <button class="scope-pill" id="scope-all" onclick="switchScope('all')">◎ All Materials</button>
         <button class="scope-pill" id="scope-changes" onclick="switchScope('changes')" style="position:relative">⟳ Changes<span id="changes-badge" style="position:absolute;top:2px;right:4px;width:6px;height:6px;border-radius:50%;background:#f59e0b;box-shadow:0 0 5px #f59e0b;display:none"></span></button>
       </div>
+      <!-- Changes feed area — only visible in changes scope -->
+      <div id="changes-feed-area" style="display:none;flex:1;overflow-y:auto;border-bottom:1px solid var(--border)"></div>
+      <!-- Normal AI conversation -->
       <div class="ai-conversation" id="ai-conversation"></div>
       <div class="ai-suggestions" id="ai-suggestions">
         <div class="suggestion-label" id="suggestion-label">Ask about this section</div>
@@ -1546,8 +1549,12 @@ function openMaterialChanges(name) {
   switchScope('changes');
   setTimeout(() => {
     const card = document.getElementById(`change-card-${name.replace(/\s+/g,'-')}`);
-    if (card) { card.scrollIntoView({behavior:'smooth',block:'center'}); card.classList.add('highlight-pulse'); setTimeout(()=>card.classList.remove('highlight-pulse'),1200); }
-  }, 80);
+    if (card) {
+      card.scrollIntoView({behavior:'smooth', block:'nearest'});
+      card.classList.add('highlight-pulse');
+      setTimeout(() => card.classList.remove('highlight-pulse'), 1200);
+    }
+  }, 100);
 }
 
 function buildChangesView() {
@@ -2418,10 +2425,15 @@ function switchScope(scope) {
   ['chapter','briefs','all','changes'].forEach(s => {
     document.getElementById(`scope-${s}`)?.classList.toggle('active', s === scope);
   });
-  // Clear conversation when leaving changes scope
-  if (scope !== 'changes') {
-    const conv = document.getElementById('ai-conversation');
-    if (conv) conv.innerHTML = '';
+  // Toggle changes feed area
+  const feedArea = document.getElementById('changes-feed-area');
+  const conv = document.getElementById('ai-conversation');
+  if (scope === 'changes') {
+    if (feedArea) { feedArea.style.display = 'block'; feedArea.innerHTML = buildChangesView(); }
+    if (conv) { conv.style.flex = '0 0 auto'; conv.style.maxHeight = '120px'; conv.innerHTML = ''; }
+  } else {
+    if (feedArea) { feedArea.style.display = 'none'; feedArea.innerHTML = ''; }
+    if (conv) { conv.style.flex = ''; conv.style.maxHeight = ''; conv.innerHTML = ''; }
   }
   const ch = CHAPTERS[STATE.chapter];
   const contextEl = document.getElementById('ai-context-text');
@@ -2441,8 +2453,6 @@ function switchScope(scope) {
   } else if (scope === 'changes') {
     if (contextEl) contextEl.textContent = `What's Changed · All Materials`;
     if (labelEl) labelEl.textContent = 'Ask about these changes';
-    const conv = document.getElementById('ai-conversation');
-    if (conv) conv.innerHTML = `<div style="padding:4px 0 8px">${buildChangesView()}</div>`;
     renderSuggestions(-3);
     return;
   }
