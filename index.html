@@ -20,27 +20,91 @@
   --ease:cubic-bezier(0.4,0,0.2,1);
 }
 html.light{
-  --void:#f8f9fc;--depth-1:#f0f2f9;--depth-2:#e6e9f4;--depth-3:#dde0ee;--depth-4:#d3d7e8;
-  --border:rgba(0,0,0,0.08);--border-glow:rgba(99,102,241,0.25);
-  --platinum:#334155;--white:#0f172a;--muted:#8b95b5;
+  /* Surfaces — warm white with personality */
+  --void:#eef0f9;
+  --depth-1:#f4f5fb;
+  --depth-2:#ffffff;
+  --depth-3:#ffffff;
+  --depth-4:#eef0f9;
+  /* Borders — indigo-tinted for character */
+  --border:rgba(80,90,180,0.13);
+  --border-glow:rgba(99,102,241,0.35);
+  /* Typography */
+  --white:#0d1628;
+  --platinum:#3b4e72;
+  --muted:#7a88b8;
+  /* Accents — deepened for light backgrounds */
+  --gold:#9a6f0e;
+  --gold-light:#c48f1a;
+  --gold-dim:rgba(154,111,14,0.10);
+  --electric:#4338ca;
+  --electric-2:#5b4fe8;
+  --electric-dim:rgba(67,56,202,0.10);
 }
 html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--white);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
-/* Light mode: flip rgba(255,255,255,...) inline patterns */
-html.light .ig-bar-track,html.light .ig-aum-track,html.light .ig-comp-track,html.light .ig-gantt-track,html.light .ig-bar-h,html.light .ig-spread-bar,html.light .podcast-progress{background:rgba(0,0,0,0.07)}
-html.light .ig-kv-row,html.light .ig-kv{border-color:rgba(0,0,0,0.08)}
-html.light .ig-table td,html.light .ig-table th{border-color:rgba(0,0,0,0.08)}
-html.light .ig-deal-metric{background:rgba(0,0,0,0.04)}
-html.light .ig-section{border-top-color:rgba(0,0,0,0.08)}
-html.light .infographic::before{opacity:0.2}
-html.light .ig-timeline::before{background:rgba(0,0,0,0.10)}
-html.light .ai-panel{border-left-color:rgba(0,0,0,0.08)}
-html.light .ai-msg.ai{background:var(--depth-3)}
-html.light .chapter-item:hover{background:rgba(0,0,0,0.04)}
-html.light .chapter-item.active{background:rgba(0,0,0,0.06)}
-html.light #screen-identity::before{background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(99,102,241,0.07) 0%,transparent 70%)}
-html.light #screen-identity::after{background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(212,168,67,0.05) 0%,transparent 60%)}
-html.light .member-card{background:var(--depth-3)}
-html.light .member-card:hover{box-shadow:0 20px 60px rgba(0,0,0,.15),0 0 40px var(--member-accent-dim,rgba(212,168,67,.15))}
+
+/* ── LIGHT MODE OVERRIDES ── */
+/* Panels: white + shadow replaces dark bg layering */
+html.light .left-rail{background:#fff;border-right:1px solid var(--border);box-shadow:2px 0 12px rgba(30,40,100,0.05)}
+html.light .top-bar{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(30,40,100,0.06)}
+html.light .ai-panel{background:#fff;border-left:1px solid var(--border);box-shadow:-2px 0 12px rgba(30,40,100,0.05)}
+html.light .ai-panel-header{background:#fff;border-bottom:1px solid var(--border)}
+html.light .panel-tabs{background:#fff;border-bottom:1px solid var(--border)}
+html.light .center-stage{background:var(--depth-1)}
+html.light .content-tab-bar{background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 6px rgba(30,40,100,0.05)}
+html.light #brief-controls-bar{background:#fff;border-bottom:1px solid var(--border)}
+/* Cards and infographics get elevation */
+html.light .infographic{background:#fff;border-color:var(--border);box-shadow:0 2px 12px rgba(30,40,100,0.07),0 8px 32px rgba(30,40,100,0.04)}
+html.light .infographic::before{opacity:0.15}
+html.light .ig-deal-expanded{background:#f7f8fd;border-color:var(--border)}
+html.light .ig-deal-metric{background:rgba(80,90,180,0.05)}
+html.light .ig-flow-node{background:#f4f5fb;border-color:var(--border)}
+html.light .ig-flow-node.hi{background:var(--ch-color-dim,rgba(67,56,202,0.08));border-color:var(--ch-color,var(--electric))}
+html.light .ig-stat-card{background:#f4f5fb;border-color:var(--border)}
+html.light .ig-risk-pill{background:#f4f5fb;border-color:var(--border)}
+html.light .ig-tl-dot{background:#f4f5fb;border-color:var(--border)}
+html.light .ig-timeline::before{background:rgba(80,90,180,0.12)}
+/* Chart tracks */
+html.light .ig-bar-track,html.light .ig-aum-track,html.light .ig-comp-track,html.light .ig-gantt-track,html.light .ig-bar-h,html.light .podcast-progress{background:rgba(80,90,180,0.08)}
+html.light .ig-spread::after{background:rgba(80,90,180,0.10)}
+/* Dividers */
+html.light .ig-kv-row{border-top-color:var(--border)}
+html.light .ig-kv{border-right-color:var(--border)}
+html.light .ig-section{border-top-color:var(--border)}
+html.light .ig-table td,html.light .ig-table th{border-color:var(--border)}
+/* Nav items */
+html.light .chapter-item:hover{background:rgba(80,90,180,0.06)}
+html.light .chapter-item.active{background:rgba(80,90,180,0.07);border-color:var(--border);box-shadow:0 2px 8px rgba(67,56,202,0.10)}
+html.light .rail-material-item:hover{background:rgba(80,90,180,0.06)}
+html.light .rail-material-item.active{background:rgba(80,90,180,0.08)}
+/* AI / chat */
+html.light .ai-context{background:rgba(80,90,180,0.05);border-bottom:1px solid var(--border)}
+html.light .ai-msg.ai{background:#f4f5fb;border:1px solid var(--border)}
+html.light .ai-msg.user{background:var(--electric-dim)}
+html.light .ai-input-wrap{background:#fff;border-top:1px solid var(--border)}
+html.light #ai-input{background:#f4f5fb;border-color:var(--border);color:var(--white)}
+html.light .scope-selector{border-bottom:1px solid var(--border)}
+html.light .scope-btn{color:var(--platinum)}
+html.light .scope-btn.active{background:var(--electric-dim);color:var(--electric)}
+html.light #changes-feed-area{background:var(--depth-1)}
+/* Podcast hero */
+html.light .podcast-hero{background:#f4f5fb;border-color:var(--border)}
+html.light .podcast-hero::before{opacity:0.4}
+html.light .related-pod-card{background:#f4f5fb;border-color:var(--border)}
+html.light .ig-related-card{background:#f4f5fb;border-color:var(--border)}
+/* Identity screen */
+html.light #screen-identity{background:var(--depth-1)}
+html.light #screen-identity::before{background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(67,56,202,0.08) 0%,transparent 70%)}
+html.light #screen-identity::after{background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(154,111,14,0.07) 0%,transparent 60%)}
+html.light .member-card{background:#fff;border-color:var(--border);box-shadow:0 2px 10px rgba(30,40,100,0.08),0 8px 24px rgba(30,40,100,0.04)}
+html.light .member-card:hover{box-shadow:0 16px 48px rgba(30,40,100,0.14),0 0 32px var(--member-accent-dim)}
+/* Summary/learn/actions panels */
+html.light .learn-card{background:#f4f5fb;border-color:var(--border)}
+html.light .learn-summary{background:#f4f5fb;border-color:var(--border)}
+html.light .prep-item:hover{background:#f4f5fb;border-color:var(--border)}
+html.light .ns-card{background:#fff;border-color:var(--border);box-shadow:0 2px 8px rgba(30,40,100,0.06)}
+/* Scrollbars */
+html.light .center-stage::-webkit-scrollbar-thumb{background:rgba(80,90,180,0.15)}
 /* Toggle button */
 .mode-toggle{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--depth-3);color:var(--platinum);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s,border-color .2s;flex-shrink:0;padding:0;line-height:1}
 .mode-toggle:hover{background:var(--depth-4);color:var(--white);border-color:var(--electric)}
