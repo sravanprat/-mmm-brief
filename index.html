@@ -1447,7 +1447,7 @@ let STATE = {
   panelOpen: true,
   panelMode: 'ai',
   scope: 'chapter',
-  expertise: 'intermediate',
+  expertise: {},   // keyed by chapter index
   depth: 'standard',
 };
 
@@ -1506,10 +1506,15 @@ function selectMember(id) {
   }, 600);
 }
 
+function getExpertise(chIdx) {
+  const idx = chIdx !== undefined ? chIdx : STATE.chapter;
+  return STATE.expertise[idx] || MEMBER_EXPERTISE[STATE.member] || 'intermediate';
+}
+
 function loadBriefRoom(id) {
   STATE.member = id;
   STATE.panelMode = 'ai';
-  STATE.expertise = MEMBER_EXPERTISE[id] || 'intermediate';
+  STATE.expertise = {};   // reset per-chapter expertise for new member
   STATE.depth = 'standard';
   const m = MEMBERS[id];
 
@@ -1612,13 +1617,14 @@ function buildChapterNav() {
     item.className = 'chapter-item' + (i === 0 ? ' active' : '');
     item.id = `ch-nav-${i}`;
     item.style.setProperty('--ch-color', ch.color);
-    const expLabel = STATE.expertise.charAt(0).toUpperCase() + STATE.expertise.slice(1);
+    const exp = getExpertise(i);
+    const expLabel = exp.charAt(0).toUpperCase() + exp.slice(1);
     item.innerHTML = `
       <div class="ch-dot"></div>
       <div class="ch-info">
         <div class="ch-title">${ch.short}</div>
         <div class="ch-meta">${ch.content[STATE.member].headline.slice(0,32)}…</div>
-        <div style="margin-top:4px"><span class="ch-expertise ${STATE.expertise}">${expLabel}</span></div>
+        <div style="margin-top:4px"><span class="ch-expertise ${exp}">${expLabel}</span></div>
       </div>
       <div class="ch-time">${ch.readTime[STATE.member]}m</div>`;
     item.onclick = () => loadChapter(i);
@@ -1781,7 +1787,8 @@ function buildChapterHTML(ch, content, m) {
   let visibleBeats = content.beats;
   if (STATE.depth === 'short') visibleBeats = content.beats.filter(b => b.type === 'intro' || b.type === 'action');
   // expertise = novice also limits to intro+action if depth is not overriding to more
-  if (STATE.expertise === 'novice' && STATE.depth === 'standard') visibleBeats = content.beats.filter(b => b.type === 'intro' || b.type === 'action');
+  const exp = getExpertise();
+  if (exp === 'novice' && STATE.depth === 'standard') visibleBeats = content.beats.filter(b => b.type === 'intro' || b.type === 'action');
 
   const beatsHTML = visibleBeats.map(beat => {
     if (beat.type === 'intro') return `<div class="beat beat-intro"><p>${beat.text}</p></div>`;
@@ -1791,7 +1798,7 @@ function buildChapterHTML(ch, content, m) {
     return '';
   }).join('');
 
-  const autoDeep = STATE.depth === 'deep' || STATE.expertise === 'expert';
+  const autoDeep = STATE.depth === 'deep' || exp === 'expert';
   const chColor = ch.color;
 
   return `
@@ -2236,7 +2243,7 @@ function updateControlsBar(ch) {
   bar.style.setProperty('--ch-ctrl-border', border);
   const expertise = document.getElementById('ctrl-expertise');
   if (expertise) expertise.innerHTML = ['novice','intermediate','expert'].map(l =>
-    `<button class="ctrl-pill${STATE.expertise===l?' active':''}" onclick="switchExpertise('${l}')">${l.charAt(0).toUpperCase()+l.slice(1)}</button>`
+    `<button class="ctrl-pill${getExpertise()===l?' active':''}" onclick="switchExpertise('${l}')">${l.charAt(0).toUpperCase()+l.slice(1)}</button>`
   ).join('');
   const depth = document.getElementById('ctrl-depth');
   if (depth) depth.innerHTML = [['short','Short'],['standard','Standard'],['deep','Deep Research']].map(([v,label]) =>
@@ -2245,7 +2252,7 @@ function updateControlsBar(ch) {
 }
 
 function switchExpertise(level) {
-  STATE.expertise = level;
+  STATE.expertise[STATE.chapter] = level;
   buildChapterNav();
   reRenderBrief();
   updateControlsBar(CHAPTERS[STATE.chapter]);
@@ -2266,7 +2273,7 @@ function reRenderBrief() {
   canvas.innerHTML = buildChapterHTML(ch, content, m);
   canvas.querySelectorAll('.beat').forEach((el, i) => { el.style.animationDelay = `${i * 60}ms`; });
   animateMetrics(ch.metrics);
-  if (['sarah','james'].includes(STATE.member) || STATE.depth === 'deep' || STATE.expertise === 'expert') {
+  if (['sarah','james'].includes(STATE.member) || STATE.depth === 'deep' || getExpertise() === 'expert') {
     const dd = canvas.querySelector('.deep-dive-content');
     if (dd) dd.classList.add('open');
   }
