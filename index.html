@@ -2552,7 +2552,7 @@ function switchScope(scope) {
   const feedArea = document.getElementById('changes-feed-area');
   const conv = document.getElementById('ai-conversation');
   if (scope === 'changes') {
-    if (feedArea) { feedArea.style.display = 'block'; feedArea.innerHTML = buildChangesView(); }
+    if (feedArea) { feedArea.style.display = 'flex'; feedArea.style.flexDirection = 'column'; feedArea.innerHTML = buildChangesView(); }
     if (conv) { conv.style.flex = '0 0 auto'; conv.style.maxHeight = '120px'; conv.innerHTML = ''; }
   } else {
     if (feedArea) { feedArea.style.display = 'none'; feedArea.innerHTML = ''; }
