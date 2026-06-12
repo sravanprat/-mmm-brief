@@ -635,6 +635,48 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
 .ig-related-icon{font-size:18px;margin-bottom:6px}
 .ig-related-name{font-size:11px;font-weight:600;color:var(--white);line-height:1.3;margin-bottom:3px}
 .ig-related-meta{font-size:9px;color:var(--muted)}
+/* ── FLOW DIAGRAM ── */
+.ig-flow{display:flex;align-items:stretch;gap:0;margin:14px 0}
+.ig-flow-node{flex:1;padding:10px 8px;border-radius:8px;background:var(--depth-4);border:1px solid var(--border);text-align:center;position:relative;min-width:0}
+.ig-flow-node.hi{border-color:var(--ch-color,var(--electric));background:var(--ch-color-dim,rgba(99,102,241,0.12))}
+.ig-flow-step{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.ig-flow-icon{font-size:16px;margin:2px 0 4px;line-height:1}
+.ig-flow-label{font-size:10px;font-weight:700;color:var(--white);line-height:1.2;margin-bottom:2px}
+.ig-flow-sub{font-size:8.5px;color:var(--muted);line-height:1.3}
+.ig-flow-arr{display:flex;align-items:center;justify-content:center;padding:0 4px;color:var(--muted);font-size:10px;flex-shrink:0;align-self:center}
+/* Stat cards */
+.ig-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ig-stat-card{padding:12px 14px;border-radius:10px;background:var(--depth-4);border:1px solid var(--border);border-top:2px solid var(--sc-color,var(--border))}
+.ig-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px}
+.ig-stat-val{font-size:20px;font-weight:800;font-family:var(--mono);color:var(--sc-color,var(--white));letter-spacing:-.02em;line-height:1}
+.ig-stat-note{font-size:9px;color:var(--muted);margin-top:3px;line-height:1.3}
+/* Risk pills */
+.ig-risk-row{display:flex;gap:8px;margin-top:4px}
+.ig-risk-pill{flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--depth-4);text-align:center}
+.ig-risk-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.ig-risk-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.05em}
+/* Spread waterfall */
+.ig-spread{display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 0 28px;position:relative;margin-top:8px}
+.ig-spread::after{content:'';position:absolute;bottom:28px;left:0;right:0;height:1px;background:rgba(255,255,255,0.06)}
+.ig-spread-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;position:relative}
+.ig-spread-bar{width:100%;border-radius:4px 4px 0 0;animation:aumGrow 1.4s var(--ease) forwards}
+.ig-spread-val{font-size:9px;font-family:var(--mono);font-weight:700;text-align:center;width:100%}
+.ig-spread-key{font-size:8px;color:var(--muted);text-align:center;line-height:1.3;position:absolute;bottom:-26px;white-space:nowrap;left:50%;transform:translateX(-50%)}
+/* Timeline */
+.ig-timeline{display:flex;align-items:flex-start;gap:0;position:relative;padding-bottom:10px;margin-top:12px}
+.ig-timeline::before{content:'';position:absolute;top:17px;left:18px;right:18px;height:2px;background:rgba(255,255,255,0.06)}
+.ig-tl-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:1}
+.ig-tl-dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--border);background:var(--depth-2);flex-shrink:0}
+.ig-tl-dot.on{background:var(--tl-color,var(--electric));border-color:var(--tl-color,var(--electric));box-shadow:0 0 14px var(--tl-color,var(--electric))}
+.ig-tl-label{font-size:9px;font-weight:700;color:var(--white);text-align:center;line-height:1.3}
+.ig-tl-sub{font-size:8px;color:var(--muted);text-align:center;line-height:1.3}
+/* Comparison table */
+.ig-comp-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.ig-comp-row:last-child{border-bottom:none}
+.ig-comp-name{font-size:10px;color:var(--platinum);flex:0 0 80px}
+.ig-comp-track{flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.ig-comp-fill{height:100%;border-radius:3px;animation:barGrow 1.4s var(--ease) forwards}
+.ig-comp-val{font-size:10px;font-family:var(--mono);font-weight:600;flex:0 0 46px;text-align:right}
 /* Podcast related cards */
 .related-pod-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .related-pod-card{padding:16px;border-radius:12px;background:var(--depth-3);border:1px solid var(--border);border-left:3px solid var(--rpc-color,var(--member-color));cursor:pointer;transition:transform .15s,box-shadow .15s}
@@ -1891,45 +1933,96 @@ function buildInfographic(ch, m) {
     <div class="ig-header">
       <div class="ig-header-left">
         <div class="ig-header-sup">Q2 2026 · AI Deployment</div>
-        <div class="ig-header-name">AI in Finance — MMM Overview</div>
+        <div class="ig-header-name">AI in Finance — MMM</div>
       </div>
       <div class="ig-hero-stat">
         <div class="ig-hero-num" style="color:#6366f1">+42 bps</div>
         <div class="ig-hero-label">AI-Attributed Alpha Q2</div>
       </div>
     </div>
-    <div class="ig-2col">
+
+    <div class="ig-section-title" style="margin-bottom:10px">AI Trading Pipeline — From Raw Data to Live Alpha</div>
+    <div class="ig-flow">
+      <div class="ig-flow-node">
+        <div class="ig-flow-step">01</div>
+        <div class="ig-flow-icon">◈</div>
+        <div class="ig-flow-label">Raw Data</div>
+        <div class="ig-flow-sub">Earnings calls, filings, macro feeds</div>
+      </div>
+      <div class="ig-flow-arr">▶</div>
+      <div class="ig-flow-node">
+        <div class="ig-flow-step">02</div>
+        <div class="ig-flow-icon">◉</div>
+        <div class="ig-flow-label">NLP Engine</div>
+        <div class="ig-flow-sub">Sentiment + tone scoring</div>
+      </div>
+      <div class="ig-flow-arr">▶</div>
+      <div class="ig-flow-node">
+        <div class="ig-flow-step">03</div>
+        <div class="ig-flow-icon">▦</div>
+        <div class="ig-flow-label">Risk Filter</div>
+        <div class="ig-flow-sub">Drawdown guards + factor screens</div>
+      </div>
+      <div class="ig-flow-arr">▶</div>
+      <div class="ig-flow-node">
+        <div class="ig-flow-step">04</div>
+        <div class="ig-flow-icon">⬡</div>
+        <div class="ig-flow-label">Regime Model</div>
+        <div class="ig-flow-sub">Macro state + cycle overlay</div>
+      </div>
+      <div class="ig-flow-arr">▶</div>
+      <div class="ig-flow-node hi">
+        <div class="ig-flow-step">05</div>
+        <div class="ig-flow-icon">★</div>
+        <div class="ig-flow-label">Alpha Signal</div>
+        <div class="ig-flow-sub" style="color:#6366f1;font-weight:700">+42 bps live</div>
+      </div>
+    </div>
+
+    <div class="ig-2col" style="margin-top:20px">
       <div>
-        <div class="ig-section-title">AI Alpha by Model</div>
+        <div class="ig-section-title">Alpha Attribution — Q2 2026</div>
         <div class="ig-bar-chart" style="margin-top:6px">
           <div class="ig-bar-row"><div class="ig-bar-label">NLP Sentiment</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:43%;background:#6366f1"></div></div><div class="ig-bar-val" style="color:#6366f1">18 bps</div></div>
           <div class="ig-bar-row"><div class="ig-bar-label">Risk Classifier</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:38%;background:#818cf8"></div></div><div class="ig-bar-val" style="color:#818cf8">16 bps</div></div>
           <div class="ig-bar-row"><div class="ig-bar-label">Regime Model</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:19%;background:#a5b4fc"></div></div><div class="ig-bar-val" style="color:#a5b4fc">8 bps</div></div>
-          <div class="ig-bar-row" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)">
-            <div class="ig-bar-label" style="font-weight:700;color:var(--white)">Total AI Alpha</div>
-            <div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:#6366f1;opacity:.5"></div></div>
+          <div class="ig-bar-row" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">
+            <div class="ig-bar-label" style="font-weight:700;color:var(--white)">Total</div>
+            <div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:linear-gradient(90deg,#6366f1,#a5b4fc)"></div></div>
             <div class="ig-bar-val" style="color:#6366f1;font-weight:700">42 bps</div>
           </div>
         </div>
       </div>
       <div>
-        <div class="ig-section-title">AI Capability Coverage (%)</div>
-        <div class="ig-bar-chart" style="margin-top:6px">
-          <div class="ig-bar-row"><div class="ig-bar-label">Research</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:78%;background:#6366f1"></div></div><div class="ig-bar-val">78%</div></div>
-          <div class="ig-bar-row"><div class="ig-bar-label">Trade Execution</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:55%;background:#6366f1"></div></div><div class="ig-bar-val">55%</div></div>
-          <div class="ig-bar-row"><div class="ig-bar-label">Risk Monitoring</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:40%;background:#6366f1"></div></div><div class="ig-bar-val">40%</div></div>
-          <div class="ig-bar-row"><div class="ig-bar-label">Client Reporting</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:22%;background:#4a5068"></div></div><div class="ig-bar-val" style="color:var(--muted)">22%</div></div>
-          <div class="ig-bar-row"><div class="ig-bar-label">Compliance</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:15%;background:#4a5068"></div></div><div class="ig-bar-val" style="color:var(--muted)">15%</div></div>
+        <div class="ig-section-title">AI Coverage vs Industry Average</div>
+        <div style="margin-top:6px">
+          <div class="ig-comp-row"><div class="ig-comp-name">Research</div><div class="ig-comp-track"><div class="ig-comp-fill" style="--w:78%;background:#6366f1"></div></div><div class="ig-comp-val" style="color:#6366f1">78%</div></div>
+          <div class="ig-comp-row"><div class="ig-comp-name">Execution</div><div class="ig-comp-track"><div class="ig-comp-fill" style="--w:55%;background:#6366f1;opacity:.8"></div></div><div class="ig-comp-val" style="color:#818cf8">55%</div></div>
+          <div class="ig-comp-row"><div class="ig-comp-name">Risk Monitor</div><div class="ig-comp-track"><div class="ig-comp-fill" style="--w:40%;background:#6366f1;opacity:.65"></div></div><div class="ig-comp-val" style="color:#a5b4fc">40%</div></div>
+          <div class="ig-comp-row"><div class="ig-comp-name">Reporting</div><div class="ig-comp-track"><div class="ig-comp-fill" style="--w:22%;background:#4a5068"></div></div><div class="ig-comp-val" style="color:var(--muted)">22%</div></div>
+          <div class="ig-comp-row"><div class="ig-comp-name">Compliance</div><div class="ig-comp-track"><div class="ig-comp-fill" style="--w:15%;background:#4a5068"></div></div><div class="ig-comp-val" style="color:var(--muted)">15%</div></div>
         </div>
       </div>
     </div>
-    <div class="ig-kv-row">
-      <div class="ig-kv"><div class="ig-kv-val" style="color:#6366f1">34%</div><div class="ig-kv-label">AI-Assisted AUM</div></div>
-      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">71%</div><div class="ig-kv-label">Signal Accuracy</div></div>
-      <div class="ig-kv"><div class="ig-kv-val">$2.1M</div><div class="ig-kv-label">Annual Savings</div></div>
-      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">34%</div><div class="ig-kv-label">Platform IRR</div></div>
-      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">18mo</div><div class="ig-kv-label">Edge Window</div></div>
+
+    <div class="ig-stat-grid" style="margin-top:20px">
+      <div class="ig-stat-card" style="--sc-color:#6366f1">
+        <div class="ig-stat-label">AI-Assisted AUM</div>
+        <div class="ig-stat-val">34%</div>
+        <div class="ig-stat-note">↑ from 12% in Q4'25 — target 60% EOY</div>
+      </div>
+      <div class="ig-stat-card" style="--sc-color:#22c55e">
+        <div class="ig-stat-label">Signal Accuracy</div>
+        <div class="ig-stat-val">71%</div>
+        <div class="ig-stat-note">Threshold for live deployment: 65%</div>
+      </div>
+      <div class="ig-stat-card" style="--sc-color:#d4a843">
+        <div class="ig-stat-label">Edge Window</div>
+        <div class="ig-stat-val">18mo</div>
+        <div class="ig-stat-note">Before crowding degrades this alpha</div>
+      </div>
     </div>
+
     <div class="ig-section">
       <div class="ig-section-title">AI Alpha Trend — Q3'25 to Q2'26 (bps)</div>
       <svg viewBox="0 0 440 110" width="100%" style="overflow:visible">
@@ -1939,9 +2032,9 @@ function buildInfographic(ch, m) {
         <text x="438" y="91" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="end">0</text>
         <text x="438" y="63" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="end">20</text>
         <text x="438" y="38" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="end">35</text>
-        <rect x="29" y="72" width="30" height="16" rx="3" fill="#6366f1" opacity=".6"/>
-        <rect x="139" y="66" width="30" height="22" rx="3" fill="#6366f1" opacity=".7"/>
-        <rect x="249" y="60" width="30" height="28" rx="3" fill="#6366f1" opacity=".85"/>
+        <rect x="29" y="72" width="30" height="16" rx="3" fill="#6366f1" opacity=".5"/>
+        <rect x="139" y="66" width="30" height="22" rx="3" fill="#6366f1" opacity=".65"/>
+        <rect x="249" y="60" width="30" height="28" rx="3" fill="#6366f1" opacity=".8"/>
         <rect x="359" y="42" width="30" height="46" rx="3" fill="#6366f1"/>
         <text x="44" y="69" fill="#818cf8" font-size="7.5" font-family="monospace" text-anchor="middle">8</text>
         <text x="154" y="63" fill="#818cf8" font-size="7.5" font-family="monospace" text-anchor="middle">18</text>
@@ -1953,6 +2046,14 @@ function buildInfographic(ch, m) {
         <text x="374" y="103" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="middle">Q2'26</text>
       </svg>
     </div>
+
+    <div class="ig-kv-row">
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#6366f1">34%</div><div class="ig-kv-label">AI-Assisted AUM</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">71%</div><div class="ig-kv-label">Signal Accuracy</div></div>
+      <div class="ig-kv"><div class="ig-kv-val">$2.1M</div><div class="ig-kv-label">Annual Savings</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">34%</div><div class="ig-kv-label">Platform IRR</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">18mo</div><div class="ig-kv-label">Edge Window</div></div>
+    </div>
   </div>`;
 
   if (ch.id === 'crypto') return `
@@ -1960,60 +2061,110 @@ function buildInfographic(ch, m) {
     <div class="ig-header">
       <div class="ig-header-left">
         <div class="ig-header-sup">June 2026 · Digital Assets</div>
-        <div class="ig-header-name">Cryptography &amp; Tokenized Assets</div>
+        <div class="ig-header-name">Tokenized Settlement — The Opportunity</div>
       </div>
       <div class="ig-hero-stat">
         <div class="ig-hero-num" style="color:#f59e0b">$12B</div>
         <div class="ig-hero-label">Global Tokenized RWA Market</div>
       </div>
     </div>
-    <div class="ig-esg-row">
-      <div class="ig-esg-gauge">
-        ${buildRadial(0,100,'#4a5068','Exposure','0%')}
-        <div class="ig-esg-gauge-label">Direct Crypto<br>Allocation</div>
+
+    <div class="ig-section-title" style="margin-bottom:10px">On-Chain Settlement Flow — How Tokenized Treasuries Work</div>
+    <div class="ig-flow">
+      <div class="ig-flow-node">
+        <div class="ig-flow-step">01</div>
+        <div class="ig-flow-icon">⬡</div>
+        <div class="ig-flow-label">Bilateral Trade</div>
+        <div class="ig-flow-sub">OTC or exchange execution</div>
       </div>
-      <div class="ig-esg-gauge">
-        ${buildRadial(89,100,'#f59e0b','DAMS','89%')}
-        <div class="ig-esg-gauge-label">DAMS Act<br>Asset Clarity</div>
+      <div class="ig-flow-arr">▶</div>
+      <div class="ig-flow-node">
+        <div class="ig-flow-step">02</div>
+        <div class="ig-flow-icon">◎</div>
+        <div class="ig-flow-label">Tokenize</div>
+        <div class="ig-flow-sub">T-Bills → on-chain tokens</div>
       </div>
-      <div class="ig-esg-gauge">
-        ${buildRadial(18,100,'#10b981','Savings','18bps')}
-        <div class="ig-esg-gauge-label">Potential Funding<br>Cost Reduction</div>
+      <div class="ig-flow-arr">▶</div>
+      <div class="ig-flow-node">
+        <div class="ig-flow-step">03</div>
+        <div class="ig-flow-icon">▦</div>
+        <div class="ig-flow-label">Smart Contract</div>
+        <div class="ig-flow-sub">ZK-verified collateral lock</div>
       </div>
-      <div class="ig-esg-gauge">
-        ${buildRadial(26,100,'#6366f1','LP Ask','26%')}
-        <div class="ig-esg-gauge-label">LPs Asking About<br>Digital Assets</div>
+      <div class="ig-flow-arr">▶</div>
+      <div class="ig-flow-node">
+        <div class="ig-flow-step">04</div>
+        <div class="ig-flow-icon">◈</div>
+        <div class="ig-flow-label">Atomic Swap</div>
+        <div class="ig-flow-sub">Simultaneous asset transfer</div>
+      </div>
+      <div class="ig-flow-arr">▶</div>
+      <div class="ig-flow-node hi">
+        <div class="ig-flow-step">05</div>
+        <div class="ig-flow-icon">✓</div>
+        <div class="ig-flow-label">T+0 Confirm</div>
+        <div class="ig-flow-sub" style="color:#f59e0b;font-weight:700">−18 bps funding cost</div>
       </div>
     </div>
+
     <div class="ig-2col" style="margin-top:20px">
       <div>
         <div class="ig-section-title">Tokenized RWA Market Growth ($B)</div>
         <div class="ig-bar-chart" style="margin-top:6px">
-          <div class="ig-bar-row"><div class="ig-bar-label">2023</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:8%;background:#4a5068"></div></div><div class="ig-bar-val">$0.9B</div></div>
-          <div class="ig-bar-row"><div class="ig-bar-label">2024</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:25%;background:#f59e0b;opacity:.55"></div></div><div class="ig-bar-val">$3.0B</div></div>
-          <div class="ig-bar-row"><div class="ig-bar-label">2025</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:50%;background:#f59e0b;opacity:.75"></div></div><div class="ig-bar-val">$6.1B</div></div>
-          <div class="ig-bar-row"><div class="ig-bar-label">Q2 2026</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:#f59e0b"></div></div><div class="ig-bar-val" style="color:#f59e0b">$12B ↑</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">2023</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:7%;background:#4a5068"></div></div><div class="ig-bar-val" style="color:var(--muted)">$0.9B</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">2024</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:25%;background:#f59e0b;opacity:.5"></div></div><div class="ig-bar-val">$3.0B</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">2025</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:51%;background:#f59e0b;opacity:.75"></div></div><div class="ig-bar-val">$6.1B</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">Q2 2026</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:#f59e0b"></div></div><div class="ig-bar-val" style="color:#f59e0b;font-weight:700">$12B ↑</div></div>
+          <div class="ig-bar-row" style="padding-top:8px;border-top:1px solid rgba(255,255,255,.06)"><div class="ig-bar-label" style="color:var(--muted)">2027 Est.</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:83%;background:#f59e0b;opacity:.3;border:1px dashed rgba(245,158,11,.4)"></div></div><div class="ig-bar-val" style="color:var(--muted)">$25B</div></div>
         </div>
       </div>
       <div>
-        <div class="ig-section-title">Institutional Adoption Status</div>
+        <div class="ig-section-title">Institutional Leaders — Live Now</div>
         <table class="ig-table" style="margin-top:4px">
-          <thead><tr><th>Product</th><th>Provider</th><th>AUM</th></tr></thead>
+          <thead><tr><th>Product</th><th>Provider</th><th>AUM / Vol</th></tr></thead>
           <tbody>
             <tr><td style="color:#f59e0b">● Tokenized Treasury</td><td>BlackRock BUIDL</td><td style="color:#22c55e">$1.0B</td></tr>
             <tr><td style="color:#f59e0b">● Tokenized MMF</td><td>Franklin FOBXX</td><td style="color:#22c55e">$480M</td></tr>
-            <tr><td style="color:#6366f1">● ZK Settlement</td><td>StarkWare</td><td style="color:#22c55e">$2.3T vol</td></tr>
-            <tr><td style="color:#4a5068">○ MMM Position</td><td>—</td><td style="color:var(--muted)">$0</td></tr>
+            <tr><td style="color:#6366f1">● ZK Settlement</td><td>StarkWare</td><td style="color:#22c55e">$2.3T</td></tr>
+            <tr><td style="color:#22d3ee">● On-Chain Repo</td><td>JPMorgan Onyx</td><td style="color:#22c55e">$10B</td></tr>
+            <tr><td style="color:#4a5068">○ MMM Position</td><td>Proposed pilot</td><td style="color:var(--muted)">$50M</td></tr>
           </tbody>
         </table>
       </div>
     </div>
+
+    <div style="margin-top:20px">
+      <div class="ig-section-title" style="margin-bottom:10px">Risk Assessment — Proposed $50M Pilot</div>
+      <div class="ig-risk-row">
+        <div class="ig-risk-pill">
+          <div class="ig-risk-label">Smart Contract</div>
+          <div class="ig-risk-badge" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)">LOW</div>
+        </div>
+        <div class="ig-risk-pill">
+          <div class="ig-risk-label">Custody Risk</div>
+          <div class="ig-risk-badge" style="background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25)">MEDIUM</div>
+        </div>
+        <div class="ig-risk-pill">
+          <div class="ig-risk-label">Regulatory</div>
+          <div class="ig-risk-badge" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)">LOW</div>
+        </div>
+        <div class="ig-risk-pill">
+          <div class="ig-risk-label">Tax Treatment</div>
+          <div class="ig-risk-badge" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)">OPEN</div>
+        </div>
+        <div class="ig-risk-pill">
+          <div class="ig-risk-label">ISDA Amendment</div>
+          <div class="ig-risk-badge" style="background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25)">60–90d</div>
+        </div>
+      </div>
+    </div>
+
     <div class="ig-kv-row">
       <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">$12B</div><div class="ig-kv-label">RWA Market Size</div></div>
-      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">+300%</div><div class="ig-kv-label">YoY Market Growth</div></div>
-      <div class="ig-kv"><div class="ig-kv-val">60-90d</div><div class="ig-kv-label">ISDA Amendment Timeline</div></div>
-      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">$50M</div><div class="ig-kv-label">Proposed Pilot Size</div></div>
-      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">89%</div><div class="ig-kv-label">Regulatory Clarity</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">+300%</div><div class="ig-kv-label">YoY Growth</div></div>
+      <div class="ig-kv"><div class="ig-kv-val">60–90d</div><div class="ig-kv-label">ISDA Timeline</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">$50M</div><div class="ig-kv-label">Proposed Pilot</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">−18 bps</div><div class="ig-kv-label">Funding Cost Save</div></div>
     </div>
   </div>`;
 
@@ -2029,7 +2180,49 @@ function buildInfographic(ch, m) {
         <div class="ig-hero-label">Gross Portfolio Yield</div>
       </div>
     </div>
-    <div class="ig-3col" style="margin-bottom:0">
+
+    <div class="ig-section-title" style="margin-bottom:10px">Yield Decomposition — Where the 11.2% Comes From</div>
+    <div class="ig-spread">
+      <div class="ig-spread-col">
+        <div class="ig-spread-val" style="color:var(--muted)">5.25%</div>
+        <div class="ig-spread-bar" style="height:50px;background:#4a5068"></div>
+        <div class="ig-spread-key">Risk-Free<br>Base Rate</div>
+      </div>
+      <div class="ig-spread-col" style="align-items:center;justify-content:center;padding-bottom:28px">
+        <div style="font-size:16px;color:var(--muted)">+</div>
+      </div>
+      <div class="ig-spread-col">
+        <div class="ig-spread-val" style="color:#6366f1">+2.50%</div>
+        <div class="ig-spread-bar" style="height:24px;background:#6366f1"></div>
+        <div class="ig-spread-key">Illiquidity<br>Premium</div>
+      </div>
+      <div class="ig-spread-col" style="align-items:center;justify-content:center;padding-bottom:28px">
+        <div style="font-size:16px;color:var(--muted)">+</div>
+      </div>
+      <div class="ig-spread-col">
+        <div class="ig-spread-val" style="color:#10b981">+1.80%</div>
+        <div class="ig-spread-bar" style="height:17px;background:#10b981"></div>
+        <div class="ig-spread-key">Credit Risk<br>Premium</div>
+      </div>
+      <div class="ig-spread-col" style="align-items:center;justify-content:center;padding-bottom:28px">
+        <div style="font-size:16px;color:var(--muted)">+</div>
+      </div>
+      <div class="ig-spread-col">
+        <div class="ig-spread-val" style="color:#d4a843">+1.65%</div>
+        <div class="ig-spread-bar" style="height:16px;background:#d4a843"></div>
+        <div class="ig-spread-key">Complexity<br>Premium</div>
+      </div>
+      <div class="ig-spread-col" style="align-items:center;justify-content:center;padding-bottom:28px">
+        <div style="font-size:16px;color:var(--muted)">=</div>
+      </div>
+      <div class="ig-spread-col">
+        <div class="ig-spread-val" style="color:#10b981;font-weight:800;font-size:11px">11.2%</div>
+        <div class="ig-spread-bar" style="height:107px;background:linear-gradient(to top,#4a5068,#10b981)"></div>
+        <div class="ig-spread-key" style="color:#10b981;font-weight:700">Gross<br>Yield</div>
+      </div>
+    </div>
+
+    <div class="ig-3col" style="margin-top:24px">
       <div class="ig-deal-expanded" style="--de-color:#10b981">
         <div class="ig-deal-header">
           <div class="ig-deal-name">Tech / SaaS</div>
@@ -2038,9 +2231,9 @@ function buildInfographic(ch, m) {
         <div class="ig-deal-amount">$412M</div>
         <div class="ig-deal-metrics">
           <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#10b981">475 bps</div><div class="ig-deal-metric-key">Spread</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.3×</div><div class="ig-deal-metric-key">Avg DSCR</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val">5yr</div><div class="ig-deal-metric-key">Avg Term</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.4%</div><div class="ig-deal-metric-key">Default Rate</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.3×</div><div class="ig-deal-metric-key">DSCR</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">5yr</div><div class="ig-deal-metric-key">Term</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.4%</div><div class="ig-deal-metric-key">Default</div></div>
         </div>
         <div class="ig-bar-h"><div class="ig-bar-h-fill" style="--w:80%;background:#10b981"></div></div>
       </div>
@@ -2052,9 +2245,9 @@ function buildInfographic(ch, m) {
         <div class="ig-deal-amount">$323M</div>
         <div class="ig-deal-metrics">
           <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#d4a843">500 bps</div><div class="ig-deal-metric-key">Spread</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.1×</div><div class="ig-deal-metric-key">Avg DSCR</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val">6yr</div><div class="ig-deal-metric-key">Avg Term</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.8%</div><div class="ig-deal-metric-key">Default Rate</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.1×</div><div class="ig-deal-metric-key">DSCR</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">6yr</div><div class="ig-deal-metric-key">Term</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.8%</div><div class="ig-deal-metric-key">Default</div></div>
         </div>
         <div class="ig-bar-h"><div class="ig-bar-h-fill" style="--w:72%;background:#d4a843"></div></div>
       </div>
@@ -2066,42 +2259,54 @@ function buildInfographic(ch, m) {
         <div class="ig-deal-amount">$280M</div>
         <div class="ig-deal-metrics">
           <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#6366f1">425 bps</div><div class="ig-deal-metric-key">Spread</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.8×</div><div class="ig-deal-metric-key">Avg DSCR</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val">7yr</div><div class="ig-deal-metric-key">Avg Term</div></div>
-          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.2%</div><div class="ig-deal-metric-key">Default Rate</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.8×</div><div class="ig-deal-metric-key">DSCR</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">7yr</div><div class="ig-deal-metric-key">Term</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.2%</div><div class="ig-deal-metric-key">Default</div></div>
         </div>
         <div class="ig-bar-h"><div class="ig-bar-h-fill" style="--w:90%;background:#6366f1"></div></div>
       </div>
     </div>
+
     <div class="ig-section">
-      <div class="ig-section-title">Expansion Capital Deployment Timeline</div>
-      <div class="ig-gantt">
-        <div class="ig-gantt-row">
-          <div class="ig-gantt-label">Tech / SaaS<br><span style="color:#10b981;font-size:9px">$320M new</span></div>
-          <div class="ig-gantt-track">
-            <div class="ig-gantt-bar" style="left:0%;width:55%;background:#10b981;color:#000">Underwriting → Close</div>
-          </div>
+      <div class="ig-section-title">$1.1B Expansion — Deployment Pipeline</div>
+      <div class="ig-flow" style="margin-top:12px">
+        <div class="ig-flow-node">
+          <div class="ig-flow-step">Q3 2026</div>
+          <div class="ig-flow-icon">◎</div>
+          <div class="ig-flow-label">Origination</div>
+          <div class="ig-flow-sub">12 credits in pipeline screened</div>
         </div>
-        <div class="ig-gantt-row">
-          <div class="ig-gantt-label">Infrastructure<br><span style="color:#6366f1;font-size:9px">$420M new</span></div>
-          <div class="ig-gantt-track">
-            <div class="ig-gantt-bar" style="left:5%;width:75%;background:#6366f1">DD → Close → Fund</div>
-          </div>
+        <div class="ig-flow-arr">▶</div>
+        <div class="ig-flow-node">
+          <div class="ig-flow-step">Q3–Q4 2026</div>
+          <div class="ig-flow-icon">◈</div>
+          <div class="ig-flow-label">Underwriting</div>
+          <div class="ig-flow-sub">DD, legal, independent review</div>
         </div>
-        <div class="ig-gantt-row">
-          <div class="ig-gantt-label">Healthcare<br><span style="color:#d4a843;font-size:9px">$360M new</span></div>
-          <div class="ig-gantt-track">
-            <div class="ig-gantt-bar" style="left:40%;width:60%;background:#d4a843;color:#000">Origination → Close</div>
-          </div>
+        <div class="ig-flow-arr">▶</div>
+        <div class="ig-flow-node">
+          <div class="ig-flow-step">Q4 2026</div>
+          <div class="ig-flow-icon">▦</div>
+          <div class="ig-flow-label">Close + Fund</div>
+          <div class="ig-flow-sub">$740M Tech + Infra first close</div>
         </div>
-      </div>
-      <div style="display:flex;gap:24px;margin-top:10px">
-        <span style="font-size:9px;color:var(--muted)">◀ Q3 2026</span>
-        <span style="font-size:9px;color:var(--muted)">Q4 2026</span>
-        <span style="font-size:9px;color:var(--muted)">Q1 2027</span>
-        <span style="font-size:9px;color:var(--muted)">Q2 2027 ▶</span>
+        <div class="ig-flow-arr">▶</div>
+        <div class="ig-flow-node">
+          <div class="ig-flow-step">Q1–Q2 2027</div>
+          <div class="ig-flow-icon">⬡</div>
+          <div class="ig-flow-label">Healthcare</div>
+          <div class="ig-flow-sub">$360M origination + close</div>
+        </div>
+        <div class="ig-flow-arr">▶</div>
+        <div class="ig-flow-node hi">
+          <div class="ig-flow-step">Q2 2027</div>
+          <div class="ig-flow-icon">★</div>
+          <div class="ig-flow-label">Full Deploy</div>
+          <div class="ig-flow-sub" style="color:#10b981;font-weight:700">$1.1B at 11%+ yield</div>
+        </div>
       </div>
     </div>
+
     <div class="ig-kv-row">
       <div class="ig-kv"><div class="ig-kv-val" style="color:#10b981">11.2%</div><div class="ig-kv-label">Gross Yield</div></div>
       <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">0.65%</div><div class="ig-kv-label">Default Rate (3yr)</div></div>
@@ -2115,26 +2320,58 @@ function buildInfographic(ch, m) {
   <div class="infographic" ${s}>
     <div class="ig-header">
       <div class="ig-header-left">
-        <div class="ig-header-sup">June 2026 · Pre-IPO Opportunity</div>
-        <div class="ig-header-name">SpaceX IPO — Investment Case</div>
+        <div class="ig-header-sup">June 2026 · Pre-IPO · 14-Day Window</div>
+        <div class="ig-header-name">SpaceX IPO — Investment Decision</div>
       </div>
       <div class="ig-hero-stat">
         <div class="ig-hero-num" style="color:#f97316">$350B</div>
         <div class="ig-hero-label">Implied Valuation (Tender)</div>
       </div>
     </div>
-    <div class="ig-section-title" style="margin-top:0;margin-bottom:10px">Sum-of-the-Parts Valuation ($B)</div>
-    <div class="ig-bar-chart" style="margin-top:0">
-      <div class="ig-bar-row"><div class="ig-bar-label">Starlink</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:#f97316"></div></div><div class="ig-bar-val" style="color:#f97316">$80B</div></div>
-      <div class="ig-bar-row"><div class="ig-bar-label">Launch Business</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:24%;background:#f59e0b"></div></div><div class="ig-bar-val" style="color:#f59e0b">$19B</div></div>
-      <div class="ig-bar-row"><div class="ig-bar-label">Gov Contracts</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:15%;background:#d4a843"></div></div><div class="ig-bar-val">$12B</div></div>
-      <div class="ig-bar-row"><div class="ig-bar-label">Starship (NPV)</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:31%;background:#6366f1;opacity:.7"></div></div><div class="ig-bar-val" style="color:#818cf8">$25B</div></div>
-      <div class="ig-bar-row" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)">
-        <div class="ig-bar-label" style="font-weight:700;color:var(--white)">Base Case EV</div>
-        <div class="ig-bar-track"><div class="ig-bar-fill" style="--w:58%;background:#4a5068;opacity:.8"></div></div>
-        <div class="ig-bar-val" style="color:var(--white);font-weight:700">$166B</div>
+
+    <div class="ig-section-title" style="margin-bottom:10px">Investment Decision Timeline</div>
+    <div class="ig-timeline">
+      <div class="ig-tl-step">
+        <div class="ig-tl-dot on" style="--tl-color:#ef4444">⚡</div>
+        <div class="ig-tl-label">Tender Open</div>
+        <div class="ig-tl-sub">Now · 14 days</div>
+      </div>
+      <div class="ig-tl-step">
+        <div class="ig-tl-dot on" style="--tl-color:#f97316">$</div>
+        <div class="ig-tl-label">Commit $150M</div>
+        <div class="ig-tl-sub">At $350B val</div>
+      </div>
+      <div class="ig-tl-step">
+        <div class="ig-tl-dot">⏸</div>
+        <div class="ig-tl-label">Pre-IPO Hold</div>
+        <div class="ig-tl-sub">2–3 years illiquid</div>
+      </div>
+      <div class="ig-tl-step">
+        <div class="ig-tl-dot">◆</div>
+        <div class="ig-tl-label">IPO Listing</div>
+        <div class="ig-tl-sub">2027–28 target</div>
+      </div>
+      <div class="ig-tl-step">
+        <div class="ig-tl-dot">★</div>
+        <div class="ig-tl-label">Exit / Hold</div>
+        <div class="ig-tl-sub">12–35% IRR range</div>
       </div>
     </div>
+
+    <div class="ig-section-title" style="margin-top:20px;margin-bottom:10px">Sum-of-the-Parts Valuation ($B)</div>
+    <div class="ig-bar-chart" style="margin-top:0">
+      <div class="ig-bar-row"><div class="ig-bar-label">Starlink</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:#f97316"></div></div><div class="ig-bar-val" style="color:#f97316">$80B</div></div>
+      <div class="ig-bar-row"><div class="ig-bar-label">Launch Biz</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:24%;background:#f59e0b"></div></div><div class="ig-bar-val" style="color:#f59e0b">$19B</div></div>
+      <div class="ig-bar-row"><div class="ig-bar-label">Gov Contracts</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:15%;background:#d4a843"></div></div><div class="ig-bar-val">$12B</div></div>
+      <div class="ig-bar-row"><div class="ig-bar-label">Starship NPV</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:31%;background:#6366f1;opacity:.8"></div></div><div class="ig-bar-val" style="color:#818cf8">$25B</div></div>
+      <div class="ig-bar-row"><div class="ig-bar-label">Mars Option</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:38%;background:#f97316;opacity:.25;border:1px dashed rgba(249,115,22,.4)"></div></div><div class="ig-bar-val" style="color:var(--muted)">$30B+</div></div>
+      <div class="ig-bar-row" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">
+        <div class="ig-bar-label" style="font-weight:700;color:var(--white)">Base Case EV</div>
+        <div class="ig-bar-track"><div class="ig-bar-fill" style="--w:58%;background:linear-gradient(90deg,#4a5068,#f97316);opacity:.7"></div></div>
+        <div class="ig-bar-val" style="color:var(--white);font-weight:700">$136B</div>
+      </div>
+    </div>
+
     <div class="ig-2col" style="margin-top:20px">
       <div>
         <div class="ig-section-title">Starlink Revenue Ramp ($B)</div>
@@ -2149,7 +2386,7 @@ function buildInfographic(ch, m) {
           <rect x="52" y="52" width="22" height="20" rx="2" fill="#f97316" opacity=".55"/>
           <rect x="86" y="36" width="22" height="36" rx="2" fill="#f97316" opacity=".75"/>
           <rect x="120" y="18" width="22" height="54" rx="2" fill="#f97316"/>
-          <rect x="154" y="8" width="22" height="64" rx="2" fill="#f97316" opacity=".5" stroke="#f97316" stroke-width="1" stroke-dasharray="2,2"/>
+          <rect x="154" y="8" width="22" height="64" rx="2" fill="#f97316" opacity=".4" stroke="#f97316" stroke-width="1" stroke-dasharray="2,2"/>
           <text x="29" y="58" fill="#f97316" font-size="6.5" font-family="monospace" text-anchor="middle">$4B</text>
           <text x="63" y="48" fill="#f97316" font-size="6.5" font-family="monospace" text-anchor="middle">$8B</text>
           <text x="97" y="32" fill="#f97316" font-size="7" font-family="monospace" text-anchor="middle">$15B</text>
@@ -2163,27 +2400,28 @@ function buildInfographic(ch, m) {
         </svg>
       </div>
       <div>
-        <div class="ig-section-title">Scenario Analysis</div>
+        <div class="ig-section-title">Scenario Analysis at Entry</div>
         <table class="ig-table" style="margin-top:4px">
-          <thead><tr><th>Scenario</th><th>EV</th><th>Entry IRR</th></tr></thead>
+          <thead><tr><th>Scenario</th><th>IPO EV</th><th>IRR</th></tr></thead>
           <tbody>
             <tr><td style="color:#22c55e">● Bull</td><td style="color:#22c55e">$450B+</td><td style="color:#22c55e">+35%</td></tr>
             <tr><td style="color:#f59e0b">● Base</td><td>$280B</td><td style="color:#f59e0b">+12%</td></tr>
             <tr><td style="color:#ef4444">● Bear</td><td style="color:#ef4444">$140B</td><td style="color:#ef4444">−20%</td></tr>
           </tbody>
         </table>
-        <div style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2)">
-          <div style="font-size:9px;font-weight:700;color:#f97316;margin-bottom:3px">⚡ Tender Closes in 14 Days</div>
-          <div style="font-size:10px;color:var(--platinum);line-height:1.5">$150M proposed at $350B valuation — 110% premium to base case EV. Access risk is the larger concern.</div>
+        <div style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)">
+          <div style="font-size:9px;font-weight:700;color:#ef4444;margin-bottom:3px">⚡ Access Risk Is the Real Risk</div>
+          <div style="font-size:10px;color:var(--platinum);line-height:1.5">Paying a 10–25% premium to base case is defensible. Not being in SpaceX at IPO is a story you tell LPs for 10 years.</div>
         </div>
       </div>
     </div>
+
     <div class="ig-kv-row">
       <div class="ig-kv"><div class="ig-kv-val" style="color:#f97316">$350B</div><div class="ig-kv-label">Tender Valuation</div></div>
       <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">$8B</div><div class="ig-kv-label">Starlink Rev 2026E</div></div>
       <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">72%</div><div class="ig-kv-label">Global Launch Share</div></div>
       <div class="ig-kv"><div class="ig-kv-val">$150M</div><div class="ig-kv-label">Proposed Stake</div></div>
-      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">2027-28</div><div class="ig-kv-label">IPO Timeline</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">2027–28</div><div class="ig-kv-label">IPO Timeline</div></div>
     </div>
   </div>`;
 
