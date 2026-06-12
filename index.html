@@ -19,7 +19,32 @@
   --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
   --ease:cubic-bezier(0.4,0,0.2,1);
 }
+html.light{
+  --void:#f8f9fc;--depth-1:#f0f2f9;--depth-2:#e6e9f4;--depth-3:#dde0ee;--depth-4:#d3d7e8;
+  --border:rgba(0,0,0,0.08);--border-glow:rgba(99,102,241,0.25);
+  --platinum:#334155;--white:#0f172a;--muted:#8b95b5;
+}
 html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--white);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+/* Light mode: flip rgba(255,255,255,...) inline patterns */
+html.light .ig-bar-track,html.light .ig-aum-track,html.light .ig-comp-track,html.light .ig-gantt-track,html.light .ig-bar-h,html.light .ig-spread-bar,html.light .podcast-progress{background:rgba(0,0,0,0.07)}
+html.light .ig-kv-row,html.light .ig-kv{border-color:rgba(0,0,0,0.08)}
+html.light .ig-table td,html.light .ig-table th{border-color:rgba(0,0,0,0.08)}
+html.light .ig-deal-metric{background:rgba(0,0,0,0.04)}
+html.light .ig-section{border-top-color:rgba(0,0,0,0.08)}
+html.light .infographic::before{opacity:0.2}
+html.light .ig-timeline::before{background:rgba(0,0,0,0.10)}
+html.light .ai-panel{border-left-color:rgba(0,0,0,0.08)}
+html.light .ai-msg.ai{background:var(--depth-3)}
+html.light .chapter-item:hover{background:rgba(0,0,0,0.04)}
+html.light .chapter-item.active{background:rgba(0,0,0,0.06)}
+html.light #screen-identity::before{background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(99,102,241,0.07) 0%,transparent 70%)}
+html.light #screen-identity::after{background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(212,168,67,0.05) 0%,transparent 60%)}
+html.light .member-card{background:var(--depth-3)}
+html.light .member-card:hover{box-shadow:0 20px 60px rgba(0,0,0,.15),0 0 40px var(--member-accent-dim,rgba(212,168,67,.15))}
+/* Toggle button */
+.mode-toggle{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--depth-3);color:var(--platinum);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s,border-color .2s;flex-shrink:0;padding:0;line-height:1}
+.mode-toggle:hover{background:var(--depth-4);color:var(--white);border-color:var(--electric)}
+.mode-toggle-id{position:absolute;top:20px;right:20px}
 
 /* ── SCREENS ── */
 .screen{position:fixed;inset:0;display:flex;transition:opacity .5s var(--ease),transform .5s var(--ease)}
@@ -838,6 +863,7 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
 
 <!-- ══ SCREEN 1: IDENTITY GATE ══ -->
 <div class="screen" id="screen-identity">
+  <button class="mode-toggle mode-toggle-id" onclick="toggleMode()" title="Toggle light/dark mode">☀</button>
   <div class="id-logo">MMM Investment Group</div>
   <div class="id-wordmark">MMM<span>Brief</span></div>
   <div class="id-tagline">AI Meeting Intelligence · Q2 Leadership Meeting</div>
@@ -855,6 +881,7 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
     <div class="top-divider"></div>
     <span style="font-size:12px;color:var(--muted)">June 11, 2026</span>
     <div class="top-spacer"></div>
+    <button class="mode-toggle" onclick="toggleMode()" id="mode-toggle-bar" title="Toggle light/dark mode">☀</button>
     <div class="member-chip" id="member-chip" onclick="switchMember()">
       <div class="chip-avatar" id="chip-avatar"></div>
       <div class="chip-name" id="chip-name"></div>
@@ -1511,8 +1538,32 @@ let STATE = {
 // INIT
 // ══════════════════════════════════════════
 function init() {
+  initMode();
   renderMemberGrid();
   generateWaveformCSS();
+}
+
+function initMode() {
+  if (localStorage.getItem('mmm-mode') === 'light') {
+    document.documentElement.classList.add('light');
+  }
+  updateModeToggles();
+}
+
+function toggleMode() {
+  const isLight = document.documentElement.classList.toggle('light');
+  localStorage.setItem('mmm-mode', isLight ? 'light' : 'dark');
+  updateModeToggles();
+}
+
+function updateModeToggles() {
+  const isLight = document.documentElement.classList.contains('light');
+  const icon = isLight ? '◑' : '☀';
+  const title = isLight ? 'Switch to dark mode' : 'Switch to light mode';
+  document.querySelectorAll('.mode-toggle').forEach(btn => {
+    btn.textContent = icon;
+    btn.title = title;
+  });
 }
 
 function renderMemberGrid() {
