@@ -455,7 +455,7 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
 
 /* ── PODCAST VIEW ── */
 .podcast-view{
-  padding:36px 48px 60px;max-width:760px;margin:0 auto;width:100%;
+  padding:32px 40px 60px;width:100%;
   display:flex;flex-direction:column;gap:28px;animation:fadeUp .4s var(--ease);
 }
 .podcast-hero{
@@ -513,7 +513,7 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
 
 /* ── INFOGRAPHICS VIEW ── */
 .ig-full-view{
-  padding:36px 48px 60px;max-width:760px;margin:0 auto;width:100%;
+  padding:32px 40px 60px;width:100%;
   display:flex;flex-direction:column;gap:28px;animation:fadeUp .4s var(--ease);
 }
 .ig-full-view .infographic{margin:0;padding:28px 32px}
@@ -993,6 +993,12 @@ const NEWS = [
   {tag:'SpaceX',tagColor:'#f97316',tagBg:'rgba(249,115,22,0.10)',headline:'Starlink surpasses 80M subscribers; revenue run-rate hits $8B ahead of IPO preparations',source:'FT',time:'6h ago'},
   {tag:'Cryptography',tagColor:'#f59e0b',tagBg:'rgba(245,158,11,0.10)',headline:'ZK-proof settlement platform processes $2B in institutional Treasury trades in first week live',source:'CoinDesk',time:'8h ago'},
   {tag:'AI Regulation',tagColor:'#6366f1',tagBg:'rgba(99,102,241,0.12)',headline:'SEC proposes mandatory AI model documentation rules for asset managers using algorithmic trading',source:'Financial Times',time:'1d ago'},
+  {tag:'Markets',tagColor:'#22d3ee',tagBg:'rgba(34,211,238,0.10)',headline:'Fed signals two more cuts in 2026 as core PCE falls to 2.1% — floating-rate credit book implications widen',source:'Bloomberg',time:'10h ago'},
+  {tag:'Private Equity',tagColor:'#10b981',tagBg:'rgba(16,185,129,0.10)',headline:'KKR and Ares compete for $4.2B infrastructure credit mandate as insurance AUM allocation to private assets hits 18%',source:'Reuters',time:'12h ago'},
+  {tag:'Space',tagColor:'#f97316',tagBg:'rgba(249,115,22,0.10)',headline:'Starship completes first commercial payload delivery — reusability milestone triggers $200M+ launch backlog repricing',source:'Space News',time:'14h ago'},
+  {tag:'Tokenization',tagColor:'#f59e0b',tagBg:'rgba(245,158,11,0.10)',headline:'JPMorgan Onyx settles $10B in institutional repo using tokenized MMF shares — T+0 now live for 14 banks',source:'WSJ',time:'1d ago'},
+  {tag:'AI Infrastructure',tagColor:'#6366f1',tagBg:'rgba(99,102,241,0.12)',headline:'Microsoft and BlackRock\'s $30B AI infrastructure fund closes first tranche — data centers, power, and fiber in scope',source:'FT',time:'1d ago'},
+  {tag:'Credit',tagColor:'#10b981',tagBg:'rgba(16,185,129,0.10)',headline:'S&P warns of spread compression fatigue in leveraged loans — direct lenders gaining share as CLO demand softens',source:'Bloomberg',time:'2d ago'},
 ];
 
 const PODCASTS = {
@@ -1000,21 +1006,29 @@ const PODCASTS = {
     {title:'The AI-Native Fund: How Quant Meets LLM in Portfolio Management',guest:'Cliff Asness · AQR Capital Management',duration:'48 min',color:'#6366f1',desc:'How leading quant shops are integrating large language models with systematic strategies — and what it means for alpha decay and edge.'},
     {title:'Generative AI in Finance: From Hype to Infrastructure',guest:'David Siegel · Two Sigma',duration:'41 min',color:'#d4a843',desc:'Practical applications of GenAI in research workflows, risk modeling, and client reporting — the tools that are actually saving time vs the noise.'},
     {title:'Regulatory Reckoning: How the SEC is Approaching AI in Trading',guest:'Gary Gensler · MIT (fmr. SEC Chair)',duration:'35 min',color:'#10b981',desc:'The coming regulatory framework for AI-driven trading, model explainability requirements, and what compliance teams need to prepare for now.'},
+    {title:'Natural Language Processing in Credit Underwriting',guest:'Katy George · McKinsey & Company',duration:'29 min',color:'#22d3ee',desc:'How NLP models are reading 10-K filings, earnings call transcripts, and news sentiment to flag credit deterioration 6-8 weeks before rating agencies catch it.'},
+    {title:'The Alpha Decay Problem: When Everyone Uses the Same AI',guest:'Emanuel Derman · Columbia University',duration:'33 min',color:'#f97316',desc:'As hedge funds converge on similar LLM-based signals, alpha half-lives are shrinking. How proprietary data and unique model architecture are the new moat.'},
   ],
   crypto:[
     {title:'Institutional Crypto in 2026: Beyond the ETF',guest:'Michael Sonnenshein · Grayscale',duration:'44 min',color:'#f59e0b',desc:'How institutional adoption has moved from ETF flows to on-chain treasury management, tokenized collateral, and real-world asset protocols.'},
     {title:'Zero Knowledge Proofs: The Technology Reshaping Finance',guest:'Eli Ben-Sasson · StarkWare',duration:'38 min',color:'#6366f1',desc:'How ZK cryptography enables private, verifiable computation — and why every major bank is running a proof-of-concept right now.'},
     {title:'Digital Asset Regulation: What 2026 Actually Changes',guest:'Perianne Boring · Digital Chamber',duration:'31 min',color:'#10b981',desc:'The regulatory landscape after the Digital Asset Market Structure Act — custody rules, stablecoin frameworks, and what institutional access now looks like.'},
+    {title:'Tokenized Treasuries: The Collateral Revolution',guest:'Cuy Sheffield · Visa Crypto',duration:'36 min',color:'#22d3ee',desc:'How tokenized US Treasuries are replacing cash in repo markets, derivatives margining, and cross-border settlement — and the $10T opportunity ahead.'},
+    {title:'Stablecoin Infrastructure for Institutional Finance',guest:'Jeremy Allaire · Circle',duration:'42 min',color:'#f97316',desc:'USDC as institutional payment rail — cross-border settlement, on-chain payroll, and the regulatory framework that makes fiat-backed stablecoins viable for asset managers.'},
   ],
   credit:[
     {title:'Private Credit at $2 Trillion: Is the Party Over?',guest:'Marc Rowan · Apollo Global Management',duration:'52 min',color:'#10b981',desc:'The structural shift from leveraged loans to direct lending — spread compression, covenant quality, and whether the asset class can sustain top-quartile returns.'},
     {title:'Direct Lending in a Rate-Normalization Cycle',guest:'Kipp deVeer · Ares Management',duration:'39 min',color:'#d4a843',desc:'How floating-rate private credit performs as rates decline — default outlook, refinancing risk, and the opportunity in distressed credits entering 2027.'},
     {title:'Infrastructure Credit: The $500B Opportunity',guest:'Raj Rao · BlackRock Infrastructure',duration:'45 min',color:'#6366f1',desc:'Energy transition, digital infrastructure, and data centers as credit investment — yield premium vs corporate bonds, covenant structure, and LP demand.'},
+    {title:'Distressed Debt Playbook for 2026-27',guest:'Howard Marks · Oaktree Capital',duration:'58 min',color:'#f97316',desc:'With rate normalization creating refinancing stress in the middle market, Howard Marks breaks down the current distressed opportunity set and cycle positioning.'},
+    {title:'Covenant Quality Index: What the Data Shows',guest:'Christina Padgett · Moody\'s Analytics',duration:'27 min',color:'#22d3ee',desc:'Moody\'s covenant quality tracker is at its weakest reading since 2007. What lender-friendly protections have been stripped, and what it means for recovery rates in the next default cycle.'},
   ],
   spacex:[
     {title:'SpaceX IPO: Valuing the Most Important Company on Earth',guest:'Gwynne Shotwell · SpaceX (President)',duration:'61 min',color:'#f97316',desc:'The economics of reusability, Starlink\'s path to $20B revenue, and why the public market debut will redefine how investors think about deep-tech companies.'},
     {title:'Pre-IPO Access: How Institutional Investors Are Positioning',guest:'Chris Sacca · Lowercarbon Capital',duration:'43 min',color:'#6366f1',desc:'The mechanics of secondary market SpaceX exposure, tender offer dynamics, and how LP agreements work for pre-IPO stakes at scale.'},
     {title:'Space Economy 2030: The Investment Thesis Beyond SpaceX',guest:'Tess Hatch · Bessemer Venture Partners',duration:'37 min',color:'#d4a843',desc:'Satellite internet, on-orbit manufacturing, lunar logistics — the next layer of the space economy and how institutional capital is being allocated.'},
+    {title:'Starship Economics: What Full Reusability Does to Launch Markets',guest:'Phil Larson · University of Colorado (fmr. SpaceX)',duration:'49 min',color:'#10b981',desc:'Starship at $10M per launch vs $150M for Falcon 9 heavy changes the entire calculus of satellite deployment, space stations, and eventually Mars logistics.'},
+    {title:'Deep-Tech Valuation: Beyond DCF for Moonshot Companies',guest:'Aswath Damodaran · NYU Stern',duration:'44 min',color:'#22d3ee',desc:'How to value companies where the terminal value dwarfs any near-term cash flow — scenario trees, real options, and the role of narrative in deep-tech valuations.'},
   ],
 };
 
@@ -1646,9 +1660,9 @@ function buildChapterNav() {
 
 function buildNewsView() {
   return `
-  <div style="padding:32px 36px;max-width:860px;margin:0 auto">
+  <div style="padding:32px 40px">
     <div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:20px">Latest News</div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
       ${NEWS.map(n => `
         <div class="ns-card" style="--nsc:${n.tagColor};--nsbg:${n.tagBg};width:auto;padding:16px 18px">
           <span class="ns-tag">${n.tag}</span>
