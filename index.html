@@ -144,9 +144,25 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
 .rail-scroll::-webkit-scrollbar-thumb{background:var(--depth-4);border-radius:2px}
 .ch-depth-mini{height:2px;border-radius:2px;background:var(--depth-4);margin-top:5px;overflow:hidden}
 .ch-depth-mini-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--electric),var(--member-color))}
-.rail-material-item{display:flex;align-items:center;gap:10px;padding:7px 10px;margin:0 10px 2px;border-radius:8px;font-size:11px;color:var(--muted);cursor:default;transition:background .2s,color .2s}
+.rail-material-item{display:flex;align-items:center;gap:10px;padding:7px 10px;margin:0 10px 2px;border-radius:8px;font-size:11px;color:var(--muted);cursor:pointer;transition:background .2s,color .2s;position:relative}
 .rail-material-item:hover{background:var(--depth-3);color:var(--platinum)}
+.rail-material-item.has-changes{color:var(--platinum)}
 .material-icon{width:20px;font-size:11px;text-align:center;flex-shrink:0;opacity:.7}
+.material-badge{width:6px;height:6px;border-radius:50%;background:var(--mb-color,#f59e0b);margin-left:auto;flex-shrink:0;box-shadow:0 0 6px var(--mb-color,#f59e0b);animation:live-pulse 2s infinite}
+.material-time{font-size:9px;color:var(--muted);margin-left:auto;flex-shrink:0}
+/* Changes feed */
+.changes-feed{padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+.change-card{padding:12px 14px;border-radius:10px;background:var(--depth-3);border:1px solid var(--border);border-left:3px solid var(--cc-color,#f59e0b);position:relative}
+.change-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.change-card-icon{font-size:13px}
+.change-card-name{font-size:12px;font-weight:700;color:var(--white);flex:1}
+.change-card-time{font-size:9px;color:var(--muted)}
+.change-card-new{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:8px;background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+.change-bullet{font-size:11px;color:var(--platinum);line-height:1.5;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:6px}
+.change-bullet:last-child{border-bottom:none}
+.change-bullet::before{content:'→';color:var(--cc-color,#f59e0b);flex-shrink:0;font-size:10px;margin-top:1px}
+.highlight-pulse{animation:highlight-flash .6s ease forwards}
+@keyframes highlight-flash{0%{box-shadow:0 0 0 3px var(--cc-color,#f59e0b)}100%{box-shadow:none}}
 .rail-news-item{padding:10px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s}
 .rail-news-item:hover{background:var(--depth-3)}
 .rail-news-item:last-child{border-bottom:none}
@@ -801,13 +817,7 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
     </div>
     <div class="rail-scroll">
       <div class="rail-section-label" style="margin-top:4px">Meeting Material</div>
-      <div>
-        <div class="rail-material-item"><span class="material-icon">◈</span>Business Outlook</div>
-        <div class="rail-material-item"><span class="material-icon">⬡</span>Market Outlook</div>
-        <div class="rail-material-item"><span class="material-icon">◎</span>Process Review</div>
-        <div class="rail-material-item"><span class="material-icon">◆</span>Performance Review</div>
-        <div class="rail-material-item"><span class="material-icon">◉</span>HR</div>
-      </div>
+      <div id="rail-materials"></div>
 
       <div class="rail-section-label" style="margin-top:16px">Briefs</div>
       <div class="chapter-nav" id="chapter-nav"></div>
@@ -877,6 +887,7 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
         <button class="scope-pill active" id="scope-chapter" onclick="switchScope('chapter')">◈ This Chapter</button>
         <button class="scope-pill" id="scope-briefs" onclick="switchScope('briefs')">⬡ All Briefs</button>
         <button class="scope-pill" id="scope-all" onclick="switchScope('all')">◎ All Materials</button>
+        <button class="scope-pill" id="scope-changes" onclick="switchScope('changes')" style="position:relative">⟳ Changes<span id="changes-badge" style="position:absolute;top:2px;right:4px;width:6px;height:6px;border-radius:50%;background:#f59e0b;box-shadow:0 0 5px #f59e0b;display:none"></span></button>
       </div>
       <div class="ai-conversation" id="ai-conversation"></div>
       <div class="ai-suggestions" id="ai-suggestions">
@@ -911,6 +922,48 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
 // ══════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════
+const MATERIAL_CHANGES = [
+  {
+    material:'Business Outlook', icon:'◈', color:'#6366f1', updated:'2h ago', isNew:true,
+    changes:[
+      'New mandate pipeline: 3 active RFPs added (total: 7 in progress)',
+      'LP retention risk updated — 2 LPs flagged at-risk following acquisition news',
+      'Q3 BD budget revised upward by $400K pending board approval',
+    ]
+  },
+  {
+    material:'Market Outlook', icon:'⬡', color:'#0ea5e9', updated:'4h ago', isNew:true,
+    changes:[
+      'Fed dot plot updated — one additional cut now consensus for 2026',
+      '10-year yield revised to 4.1% (was 4.3%) following this morning\'s CPI print',
+      'EM equity conviction revised: reducing from overweight to neutral',
+    ]
+  },
+  {
+    material:'Process Review', icon:'◎', color:'#10b981', updated:'1d ago', isNew:false,
+    changes:[
+      'Reconciliation break count updated: 4 breaks in 6 months (was 2)',
+      'PMS vendor shortlist narrowed to 2 finalists from 5',
+    ]
+  },
+  {
+    material:'Performance Review', icon:'◆', color:'#f59e0b', updated:'3h ago', isNew:true,
+    changes:[
+      'Q2 attribution finalised: +182bps vs benchmark (single sector call: +140bps)',
+      'Underperforming mandate gap widened to -240bps YTD (was -180bps last week)',
+      'LP consultant review call confirmed — scheduled for next Thursday',
+    ]
+  },
+  {
+    material:'HR', icon:'◉', color:'#ec4899', updated:'6h ago', isNew:true,
+    changes:[
+      'Senior analyst offer extended — comp exception request pending CEO sign-off',
+      'Two analyst retention risks identified following competitor outreach',
+      'Q3 hiring plan approved: 3 new roles opened across credit and quant',
+    ]
+  },
+];
+
 const NEWS = [
   {tag:'AI',tagColor:'#6366f1',tagBg:'rgba(99,102,241,0.12)',headline:'Two Sigma deploys LLM earnings sentiment model across $12B equity book — reports 40bps alpha',source:'Bloomberg',time:'2h ago'},
   {tag:'Digital Assets',tagColor:'#f59e0b',tagBg:'rgba(245,158,11,0.10)',headline:'BlackRock BUIDL tokenized Treasury fund crosses $1B AUM post-DAMS Act clarity',source:'WSJ',time:'3h ago'},
@@ -1445,6 +1498,7 @@ function loadBriefRoom(id) {
 
   // Build nav sections
   buildChapterNav();
+  buildMaterialsNav();
 
   // Switch screens
   setTimeout(() => {
@@ -1461,6 +1515,61 @@ function loadBriefRoom(id) {
     // Load first chapter
     loadChapter(0);
   }, 400);
+}
+
+// ══════════════════════════════════════════
+// MATERIALS NAV (with change badges)
+// ══════════════════════════════════════════
+const _readMaterials = new Set();
+
+function buildMaterialsNav() {
+  const el = document.getElementById('rail-materials');
+  if (!el) return;
+  const newCount = MATERIAL_CHANGES.filter(m => m.isNew && !_readMaterials.has(m.material)).length;
+  const badge = document.getElementById('changes-badge');
+  if (badge) badge.style.display = newCount > 0 ? 'block' : 'none';
+  el.innerHTML = MATERIAL_CHANGES.map(m => {
+    const unread = m.isNew && !_readMaterials.has(m.material);
+    return `
+    <div class="rail-material-item${unread ? ' has-changes' : ''}" onclick="openMaterialChanges('${m.material}')">
+      <span class="material-icon" style="color:${m.color};opacity:1">${m.icon}</span>
+      <span style="flex:1">${m.material}</span>
+      ${unread ? `<span class="material-badge" style="--mb-color:${m.color}"></span>` : `<span class="material-time">${m.updated}</span>`}
+    </div>`;
+  }).join('');
+}
+
+function openMaterialChanges(name) {
+  _readMaterials.add(name);
+  buildMaterialsNav();
+  const m = MATERIAL_CHANGES.find(x => x.material === name);
+  if (!m) return;
+  switchPanelMode('ai');
+  switchScope('changes');
+  // Scroll to this card in the changes feed
+  setTimeout(() => {
+    const card = document.getElementById(`change-card-${name.replace(/\s+/g,'-')}`);
+    if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
+    card?.classList.add('highlight-pulse');
+    setTimeout(() => card?.classList.remove('highlight-pulse'), 1200);
+  }, 80);
+}
+
+function buildChangesView() {
+  return `
+  <div class="changes-feed">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Material Changes · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+    ${MATERIAL_CHANGES.map(m => `
+      <div class="change-card" id="change-card-${m.material.replace(/\s+/g,'-')}" style="--cc-color:${m.color}">
+        <div class="change-card-header">
+          <span class="change-card-icon">${m.icon}</span>
+          <span class="change-card-name">${m.material}</span>
+          ${m.isNew ? '<span class="change-card-new">Updated</span>' : ''}
+          <span class="change-card-time">${m.updated}</span>
+        </div>
+        ${m.changes.map(c => `<div class="change-bullet">${c}</div>`).join('')}
+      </div>`).join('')}
+  </div>`;
 }
 
 // ══════════════════════════════════════════
@@ -2311,9 +2420,16 @@ function sendQuestion(text) {
 
 function switchScope(scope) {
   STATE.scope = scope;
-  ['chapter','briefs','all'].forEach(s => {
+  ['chapter','briefs','all','changes'].forEach(s => {
     document.getElementById(`scope-${s}`)?.classList.toggle('active', s === scope);
   });
+  // Restore layout if leaving changes scope
+  if (scope !== 'changes') {
+    const sugEl = document.getElementById('ai-suggestions');
+    if (sugEl) sugEl.style.display = '';
+    const conv = document.getElementById('ai-conversation');
+    if (conv) { conv.style.flex = ''; conv.style.minHeight = ''; conv.innerHTML = ''; }
+  }
   const ch = CHAPTERS[STATE.chapter];
   const contextEl = document.getElementById('ai-context-text');
   const labelEl = document.getElementById('suggestion-label');
@@ -2325,10 +2441,20 @@ function switchScope(scope) {
     if (contextEl) contextEl.textContent = `Asking across: All Briefs`;
     if (labelEl) labelEl.textContent = 'Ask across all briefs';
     renderSuggestions(-1);
-  } else {
+  } else if (scope === 'all') {
     if (contextEl) contextEl.textContent = `Asking across: All Materials`;
     if (labelEl) labelEl.textContent = 'Ask across all materials';
     renderSuggestions(-2);
+  } else if (scope === 'changes') {
+    if (contextEl) contextEl.textContent = `What's Changed · All Materials`;
+    const sugEl = document.getElementById('ai-suggestions');
+    if (sugEl) sugEl.style.display = 'none';
+    const conv = document.getElementById('ai-conversation');
+    if (conv) { conv.style.flex = '0'; conv.style.minHeight = '0'; }
+    // Render changes inline in the conversation area
+    const changesEl = document.getElementById('ai-conversation');
+    if (changesEl) changesEl.innerHTML = `<div style="padding:0">${buildChangesView()}</div>`;
+    return;
   }
 }
 
