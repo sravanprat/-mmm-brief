@@ -918,6 +918,82 @@ html.light .center-stage::-webkit-scrollbar-thumb{background:rgba(80,90,180,0.15
 /* ── IDENTITY GATE ENHANCEMENT ── */
 #screen-identity::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(99,102,241,0.1) 0%,transparent 70%);pointer-events:none;animation:identity-pulse 8s ease-in-out infinite}
 #screen-identity::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(212,168,67,0.07) 0%,transparent 60%);pointer-events:none;animation:identity-gold 10s ease-in-out infinite}
+
+/* ── DRAWER OVERLAY ── */
+.drawer-overlay{display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.45);top:56px;backdrop-filter:blur(2px);cursor:pointer}
+
+/* ── MOBILE BUTTONS ── */
+.mob-btn{display:none;width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--depth-3);color:var(--platinum);cursor:pointer;font-size:16px;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;padding:0;line-height:1}
+.mob-btn:hover{background:var(--depth-4);color:var(--white)}
+html.light .mob-btn{background:#fff}
+
+/* ── TABLET (≤1024px) ── */
+@media(max-width:1024px){
+  #screen-brief{grid-template-columns:1fr;grid-template-rows:56px 1fr}
+  .left-rail{position:fixed;left:0;top:56px;bottom:0;width:288px;z-index:200;transform:translateX(-100%);transition:transform .3s var(--ease);border-right:1px solid var(--border)}
+  .left-rail.rail-open{transform:translateX(0);box-shadow:4px 0 40px rgba(0,0,0,.5)}
+  html.light .left-rail.rail-open{box-shadow:4px 0 24px rgba(30,40,100,.12)}
+  .ai-panel{position:fixed;right:0;top:56px;bottom:0;width:320px;z-index:200;transform:translateX(100%);transition:transform .3s var(--ease)}
+  .ai-panel.panel-open{transform:translateX(0);box-shadow:-4px 0 40px rgba(0,0,0,.5)}
+  html.light .ai-panel.panel-open{box-shadow:-4px 0 24px rgba(30,40,100,.12)}
+  .mob-btn{display:flex}
+  .collapse-btn{display:none}
+  .top-divider:not(:first-of-type){display:none}
+  .ig-related-grid{grid-template-columns:repeat(3,1fr)}
+  .related-pod-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ── MOBILE (≤640px) ── */
+@media(max-width:640px){
+  #screen-brief{grid-template-rows:52px 1fr}
+  .top-bar{padding:0 14px;gap:10px}
+  .top-divider{display:none}
+  .meeting-badge{display:none}
+  .top-date-label{display:none}
+
+  .left-rail{width:88vw;max-width:310px}
+
+  .ai-panel{width:100%!important;right:0;top:auto!important;bottom:0;height:75vh;transform:translateY(100%)!important;border-radius:20px 20px 0 0;transition:transform .35s var(--ease)!important}
+  .ai-panel.panel-open{transform:translateY(0)!important;box-shadow:0 -8px 40px rgba(0,0,0,.5)!important}
+  html.light .ai-panel.panel-open{box-shadow:0 -8px 32px rgba(30,40,100,.14)!important}
+  .ai-panel-header{border-radius:20px 20px 0 0}
+
+  .chapter-canvas{padding:20px 18px 80px}
+
+  .content-tab-bar{overflow-x:auto;padding:0 12px;gap:0}
+  .content-tab-bar::-webkit-scrollbar{display:none}
+  .content-tab{flex-shrink:0;padding:13px 12px;font-size:11px}
+
+  .ig-2col,.ig-3col{grid-template-columns:1fr}
+  .ig-flow{flex-wrap:wrap;gap:6px}
+  .ig-flow-arr{display:none}
+  .ig-flow-node{flex:0 0 calc(50% - 3px);min-width:0}
+  .ig-related-grid{grid-template-columns:repeat(2,1fr)}
+  .related-pod-grid{grid-template-columns:1fr}
+  .news-cards-grid{grid-template-columns:1fr}
+  .ig-spread{gap:4px}
+  .ig-timeline{gap:0}
+
+  .metrics-row{gap:8px}
+  .metric-card{width:140px;padding:16px 14px}
+  .metric-value{font-size:22px}
+
+  .ch-headline{font-size:26px}
+  .ch-hero{margin-bottom:20px}
+  .metrics-row{margin:20px 0}
+
+  .audio-player{padding:12px 14px;gap:10px}
+
+  .id-wordmark{font-size:36px}
+  .id-tagline{font-size:13px;margin-bottom:36px;text-align:center;padding:0 20px}
+  .member-grid{flex-wrap:wrap;justify-content:center;gap:10px;padding:0 12px}
+  .member-card{width:calc(50% - 5px);max-width:180px;padding:18px 14px}
+
+  .ig-kv-row{flex-wrap:wrap}
+  .ig-kv{flex:0 0 50%;padding:10px 12px;border-right:none;border-bottom:1px solid var(--border)}
+  .ig-kv:nth-child(odd){border-right:1px solid var(--border)}
+  .ig-kv:last-child:nth-child(odd){flex:0 0 100%;border-right:none}
+}
 </style>
 </head>
 <body>
@@ -940,14 +1016,19 @@ html.light .center-stage::-webkit-scrollbar-thumb{background:rgba(80,90,180,0.15
 <!-- ══ SCREEN 2: BRIEFING ROOM ══ -->
 <div class="screen hidden" id="screen-brief">
 
+  <!-- DRAWER OVERLAY -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawers()"></div>
+
   <!-- TOP BAR -->
   <div class="top-bar">
+    <button class="mob-btn" onclick="toggleNav()" title="Menu" style="font-size:18px;margin-right:4px">☰</button>
     <div class="top-logo">MMM</div>
     <div class="top-divider"></div>
     <div class="meeting-badge"><div class="live-dot"></div>Q2 Leadership Meeting</div>
     <div class="top-divider"></div>
-    <span style="font-size:12px;color:var(--muted)">June 11, 2026</span>
+    <span class="top-date-label" style="font-size:12px;color:var(--muted)">June 11, 2026</span>
     <div class="top-spacer"></div>
+    <button class="mob-btn" onclick="openAIPanel()" title="Knowledge Center" style="font-size:13px">✦</button>
     <button class="mode-toggle" onclick="toggleMode()" id="mode-toggle-bar" title="Toggle light/dark mode">☀</button>
     <div class="member-chip" id="member-chip" onclick="switchMember()">
       <div class="chip-avatar" id="chip-avatar"></div>
@@ -1937,6 +2018,7 @@ function buildActionsPanel(memberId) {
 function loadChapter(idx) {
   STATE.chapter = idx;
   STATE.readChapters.add(idx);
+  if (window.innerWidth <= 1024) closeDrawers();
 
   // Update nav
   document.querySelectorAll('.chapter-item').forEach((el, i) => {
@@ -2857,11 +2939,37 @@ function toggleDeepDive(btn) {
 // AI PANEL
 // ══════════════════════════════════════════
 function togglePanel() {
+  if (window.innerWidth <= 1024) { openAIPanel(); return; }
   STATE.panelOpen = !STATE.panelOpen;
   const panel = document.getElementById('ai-panel');
   panel.style.width = STATE.panelOpen ? '' : '0';
   panel.style.opacity = STATE.panelOpen ? '' : '0';
   panel.style.overflow = STATE.panelOpen ? '' : 'hidden';
+}
+
+function toggleNav() {
+  const rail = document.querySelector('.left-rail');
+  const overlay = document.getElementById('drawer-overlay');
+  const panel = document.getElementById('ai-panel');
+  const isOpen = rail.classList.toggle('rail-open');
+  panel.classList.remove('panel-open');
+  overlay.style.display = isOpen ? 'block' : 'none';
+}
+
+function openAIPanel() {
+  const panel = document.getElementById('ai-panel');
+  const rail = document.querySelector('.left-rail');
+  const overlay = document.getElementById('drawer-overlay');
+  const isOpen = panel.classList.toggle('panel-open');
+  rail.classList.remove('rail-open');
+  overlay.style.display = isOpen ? 'block' : 'none';
+}
+
+function closeDrawers() {
+  document.querySelector('.left-rail')?.classList.remove('rail-open');
+  document.getElementById('ai-panel')?.classList.remove('panel-open');
+  const ov = document.getElementById('drawer-overlay');
+  if (ov) ov.style.display = 'none';
 }
 
 function addAIMessage(text) {
