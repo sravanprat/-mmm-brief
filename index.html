@@ -1542,16 +1542,11 @@ function buildMaterialsNav() {
 function openMaterialChanges(name) {
   _readMaterials.add(name);
   buildMaterialsNav();
-  const m = MATERIAL_CHANGES.find(x => x.material === name);
-  if (!m) return;
   switchPanelMode('ai');
   switchScope('changes');
-  // Scroll to this card in the changes feed
   setTimeout(() => {
     const card = document.getElementById(`change-card-${name.replace(/\s+/g,'-')}`);
-    if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
-    card?.classList.add('highlight-pulse');
-    setTimeout(() => card?.classList.remove('highlight-pulse'), 1200);
+    if (card) { card.scrollIntoView({behavior:'smooth',block:'center'}); card.classList.add('highlight-pulse'); setTimeout(()=>card.classList.remove('highlight-pulse'),1200); }
   }, 80);
 }
 
@@ -2423,12 +2418,10 @@ function switchScope(scope) {
   ['chapter','briefs','all','changes'].forEach(s => {
     document.getElementById(`scope-${s}`)?.classList.toggle('active', s === scope);
   });
-  // Restore layout if leaving changes scope
+  // Clear conversation when leaving changes scope
   if (scope !== 'changes') {
-    const sugEl = document.getElementById('ai-suggestions');
-    if (sugEl) sugEl.style.display = '';
     const conv = document.getElementById('ai-conversation');
-    if (conv) { conv.style.flex = ''; conv.style.minHeight = ''; conv.innerHTML = ''; }
+    if (conv) conv.innerHTML = '';
   }
   const ch = CHAPTERS[STATE.chapter];
   const contextEl = document.getElementById('ai-context-text');
@@ -2447,13 +2440,10 @@ function switchScope(scope) {
     renderSuggestions(-2);
   } else if (scope === 'changes') {
     if (contextEl) contextEl.textContent = `What's Changed · All Materials`;
-    const sugEl = document.getElementById('ai-suggestions');
-    if (sugEl) sugEl.style.display = 'none';
+    if (labelEl) labelEl.textContent = 'Ask about these changes';
     const conv = document.getElementById('ai-conversation');
-    if (conv) { conv.style.flex = '0'; conv.style.minHeight = '0'; }
-    // Render changes inline in the conversation area
-    const changesEl = document.getElementById('ai-conversation');
-    if (changesEl) changesEl.innerHTML = `<div style="padding:0">${buildChangesView()}</div>`;
+    if (conv) conv.innerHTML = `<div style="padding:4px 0 8px">${buildChangesView()}</div>`;
+    renderSuggestions(-3);
     return;
   }
 }
@@ -2462,6 +2452,20 @@ function getAIResponse(q) {
   const ch = CHAPTERS[STATE.chapter];
   const m = MEMBERS[STATE.member];
   const content = ch.content[STATE.member];
+
+  if (STATE.scope === 'changes') {
+    const m = MEMBERS[STATE.member];
+    const newItems = MATERIAL_CHANGES.filter(x => x.isNew);
+    const allChanges = MATERIAL_CHANGES.flatMap(x => x.changes.map(c => `${x.material}: ${c}`));
+    const urgent = MATERIAL_CHANGES.find(x => x.isNew && x.updated.includes('h ago') && parseInt(x.updated) <= 4);
+    const responses = [
+      `The most time-sensitive change for ${m.name} is in <strong>${urgent?.material || newItems[0]?.material}</strong> — updated ${urgent?.updated || newItems[0]?.updated}. Key item: "${urgent?.changes[0] || newItems[0]?.changes[0]}". This has direct implications for today's meeting decisions.`,
+      `Across all ${newItems.length} updated materials: ${newItems.map(x=>`<strong>${x.material}</strong> (${x.updated}): ${x.changes[0]}`).join(' · ')}. The Performance Review and Business Outlook changes are most likely to affect the meeting agenda directly.`,
+      `For ${m.name} specifically, the changes with highest direct impact: <strong>Performance Review</strong> — the underperforming mandate gap has widened to -240bps and a consultant call is confirmed. <strong>HR</strong> — the senior analyst comp exception needs CEO sign-off before end of week. Both require action today.`,
+      `Summary of all recent changes: ${allChanges.slice(0,4).join('; ')}. The Market Outlook update (Fed cut consensus + 10yr yield revision) is the macro context shift that affects every investment decision on today's agenda.`,
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
 
   if (STATE.scope === 'briefs') {
     const allHeadlines = CHAPTERS.map(c => `${c.icon} ${c.title}: ${c.content[STATE.member].headline}`).join(' · ');
@@ -2512,6 +2516,12 @@ function renderSuggestions(chIdx) {
       "Synthesise today's meeting into three bullet points",
       "Which material should I review first before the meeting?",
       "What decisions need my sign-off today across all materials?",
+    ];
+  } else if (chIdx === -3) {
+    suggestions = [
+      "Which change needs my most urgent attention?",
+      "Summarise all changes in one paragraph",
+      "Which changes affect my role directly?",
     ];
   } else {
     suggestions = m.suggestions[chIdx] || m.suggestions[0];
