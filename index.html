@@ -1508,13 +1508,15 @@ function selectMember(id) {
 
 function getExpertise(chIdx) {
   const idx = chIdx !== undefined ? chIdx : STATE.chapter;
-  return STATE.expertise[idx] || MEMBER_EXPERTISE[STATE.member] || 'intermediate';
+  return STATE.expertise[idx] || 'intermediate';
 }
 
 function loadBriefRoom(id) {
   STATE.member = id;
   STATE.panelMode = 'ai';
-  STATE.expertise = {};   // reset per-chapter expertise for new member
+  // seed every chapter with its own independent default — changes to one won't affect others
+  STATE.expertise = {};
+  CHAPTERS.forEach((_, i) => { STATE.expertise[i] = MEMBER_EXPERTISE[id] || 'intermediate'; });
   STATE.depth = 'standard';
   const m = MEMBERS[id];
 
