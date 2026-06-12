@@ -890,7 +890,7 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
         <button class="scope-pill" id="scope-changes" onclick="switchScope('changes')" style="position:relative">⟳ Changes<span id="changes-badge" style="position:absolute;top:2px;right:4px;width:6px;height:6px;border-radius:50%;background:#f59e0b;box-shadow:0 0 5px #f59e0b;display:none"></span></button>
       </div>
       <!-- Changes feed area — only visible in changes scope -->
-      <div id="changes-feed-area" style="display:none;flex:1;overflow-y:auto;border-bottom:1px solid var(--border)"></div>
+      <div id="changes-feed-area" style="display:none;flex:1;min-height:0;overflow-y:auto;border-bottom:1px solid var(--border)"></div>
       <!-- Normal AI conversation -->
       <div class="ai-conversation" id="ai-conversation"></div>
       <div class="ai-suggestions" id="ai-suggestions">
