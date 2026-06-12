@@ -1,0 +1,2629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MMM Brief — AI Meeting Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#050508;--depth-1:#0c0d14;--depth-2:#12141f;--depth-3:#191b2a;--depth-4:#1f2235;
+  --border:rgba(255,255,255,0.07);--border-glow:rgba(99,102,241,0.25);
+  --gold:#d4a843;--gold-light:#f0c866;--gold-dim:rgba(212,168,67,0.12);
+  --electric:#6366f1;--electric-2:#818cf8;--electric-dim:rgba(99,102,241,0.12);
+  --platinum:#94a3b8;--white:#f0f2f8;--muted:#4a5068;
+  --positive:#22c55e;--warning:#f59e0b;--negative:#ef4444;
+  --member-color:#d4a843;--member-color-dim:rgba(212,168,67,0.12);
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --ease:cubic-bezier(0.4,0,0.2,1);
+}
+html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--white);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:flex;transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(12px)}
+
+/* ── IDENTITY GATE ── */
+#screen-identity{flex-direction:column;align-items:center;justify-content:center;background:var(--depth-1);overflow:hidden}
+#screen-identity::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none}
+
+.id-logo{font-size:13px;font-weight:700;letter-spacing:.35em;color:var(--gold);text-transform:uppercase;margin-bottom:12px;opacity:0;animation:fadeUp .6s .2s var(--ease) forwards}
+.id-wordmark{font-size:52px;font-weight:800;letter-spacing:-.03em;color:var(--white);margin-bottom:8px;opacity:0;animation:fadeUp .6s .35s var(--ease) forwards}
+.id-wordmark span{color:var(--gold)}
+.id-tagline{font-size:14px;color:var(--platinum);margin-bottom:56px;opacity:0;animation:fadeUp .6s .5s var(--ease) forwards}
+
+.member-grid{display:flex;gap:16px;opacity:0;animation:fadeUp .7s .65s var(--ease) forwards}
+.member-card{
+  width:168px;padding:24px 18px;border-radius:16px;cursor:pointer;
+  background:var(--depth-3);border:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  transition:transform .25s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease),opacity .3s var(--ease);
+  position:relative;overflow:hidden;
+}
+.member-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--member-accent-dim,rgba(212,168,67,.08)) 0%,transparent 60%);opacity:0;transition:opacity .3s}
+.member-card:hover{transform:translateY(-6px);border-color:var(--member-accent,var(--gold));box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px var(--member-accent-dim,rgba(212,168,67,.15))}
+.member-card:hover::before{opacity:1}
+.member-card.dimmed{opacity:.25;transform:scale(.96)}
+.member-card.selected{border-color:var(--member-accent,var(--gold));box-shadow:0 0 0 2px var(--member-accent,var(--gold))}
+
+.avatar-ring{
+  width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--depth-4);border:2px solid var(--member-accent,var(--gold));
+  font-size:16px;font-weight:700;color:var(--member-accent,var(--gold));
+  position:relative;transition:box-shadow .3s;
+}
+.member-card:hover .avatar-ring{box-shadow:0 0 20px var(--member-accent-dim,rgba(212,168,67,.4))}
+.mc-name{font-size:13px;font-weight:600;color:var(--white);text-align:center}
+.mc-title{font-size:10px;color:var(--platinum);text-align:center;line-height:1.4}
+.mc-ready{font-size:10px;color:var(--gold);opacity:0;transition:opacity .2s;margin-top:2px}
+.member-card:hover .mc-ready{opacity:1}
+.exp-dots{display:flex;gap:4px;margin-top:4px}
+.exp-dot{width:6px;height:6px;border-radius:50%;background:var(--depth-4);border:1px solid var(--muted)}
+.exp-dot.filled{background:var(--member-accent,var(--gold));border-color:var(--member-accent,var(--gold))}
+
+/* Loading overlay */
+#loading-overlay{
+  position:fixed;inset:0;background:var(--depth-1);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;opacity:0;pointer-events:none;transition:opacity .3s var(--ease);
+}
+#loading-overlay.active{opacity:1;pointer-events:all}
+.loading-text{font-size:18px;font-weight:500;color:var(--white);margin-bottom:20px;min-height:28px}
+.loading-dots{display:flex;gap:8px}
+.loading-dot{width:8px;height:8px;border-radius:50%;background:var(--electric);animation:pulse-dot 1.2s ease-in-out infinite}
+.loading-dot:nth-child(2){animation-delay:.2s}
+.loading-dot:nth-child(3){animation-delay:.4s}
+
+/* ── BRIEFING ROOM ── */
+#screen-brief{display:grid;grid-template-columns:260px 1fr 320px;grid-template-rows:56px 1fr;overflow:hidden}
+
+/* Top bar */
+.top-bar{
+  grid-column:1/-1;display:flex;align-items:center;padding:0 20px;
+  background:var(--depth-2);border-bottom:1px solid var(--border);gap:16px;
+  position:relative;z-index:10;
+}
+.top-logo{font-size:11px;font-weight:800;letter-spacing:.3em;color:var(--gold);text-transform:uppercase;margin-right:8px}
+.top-divider{width:1px;height:20px;background:var(--border)}
+.meeting-badge{
+  display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;
+  background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);font-size:11px;color:#22c55e;font-weight:500;
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:live-pulse 2s infinite}
+.top-spacer{flex:1}
+.member-chip{
+  display:flex;align-items:center;gap:10px;padding:6px 14px;border-radius:24px;
+  background:var(--depth-3);border:1px solid var(--member-color-dim);cursor:pointer;
+  transition:border-color .2s;
+}
+.member-chip:hover{border-color:var(--member-color)}
+.chip-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;background:var(--member-color-dim);color:var(--member-color)}
+.chip-name{font-size:12px;font-weight:600;color:var(--white)}
+.chip-badge{font-size:9px;padding:2px 6px;border-radius:10px;background:var(--electric-dim);color:var(--electric-2);font-weight:500}
+
+/* Reading progress bar */
+.reading-bar{position:absolute;bottom:0;left:0;height:2px;background:linear-gradient(90deg,var(--electric),var(--gold));transition:width .3s var(--ease);width:0}
+
+/* LEFT RAIL */
+.left-rail{
+  background:var(--depth-2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;grid-row:2;
+}
+.center-stage{grid-row:2}
+.ai-panel{grid-row:2}
+.rail-section-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);padding:0 20px;margin-bottom:12px}
+.chapter-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px}
+.chapter-item{
+  display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:10px;cursor:pointer;
+  border:1px solid transparent;transition:background .2s var(--ease),border-color .2s var(--ease);
+  position:relative;overflow:hidden;
+}
+.chapter-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ch-color,var(--gold));opacity:0;transition:opacity .2s;border-radius:0 2px 2px 0}
+.chapter-item:hover{background:var(--depth-3)}
+.chapter-item.active{background:var(--depth-3);border-color:var(--border)}
+.chapter-item.active::before{opacity:1}
+.ch-dot{width:8px;height:8px;border-radius:50%;border:2px solid var(--ch-color,var(--gold));flex-shrink:0;transition:background .2s}
+.chapter-item.active .ch-dot,.chapter-item.read .ch-dot{background:var(--ch-color,var(--gold))}
+.ch-info{flex:1;min-width:0}
+.ch-title{font-size:12px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-meta{font-size:10px;color:var(--muted)}
+.ch-time{font-size:10px;color:var(--muted);flex-shrink:0}
+
+.rail-footer{padding:16px 20px;border-top:1px solid var(--border);margin-top:auto}
+.rail-member-depth{font-size:10px;color:var(--platinum);margin-bottom:6px}
+.depth-bar{height:3px;border-radius:2px;background:var(--depth-4)}
+.depth-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--electric),var(--member-color));transition:width .6s var(--ease)}
+
+/* Rail new layout */
+.rail-meeting-header{padding:14px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.rail-meeting-name{font-size:12px;font-weight:700;color:var(--white);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail-meeting-date{font-size:10px;color:var(--muted)}
+.rail-scroll{flex:1;overflow-y:auto;padding:8px 0 24px}
+.rail-scroll::-webkit-scrollbar{width:3px}
+.rail-scroll::-webkit-scrollbar-thumb{background:var(--depth-4);border-radius:2px}
+.ch-depth-mini{height:2px;border-radius:2px;background:var(--depth-4);margin-top:5px;overflow:hidden}
+.ch-depth-mini-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--electric),var(--member-color))}
+.rail-material-item{display:flex;align-items:center;gap:10px;padding:7px 10px;margin:0 10px 2px;border-radius:8px;font-size:11px;color:var(--muted);cursor:default;transition:background .2s,color .2s}
+.rail-material-item:hover{background:var(--depth-3);color:var(--platinum)}
+.material-icon{width:20px;font-size:11px;text-align:center;flex-shrink:0;opacity:.7}
+.rail-news-item{padding:10px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s}
+.rail-news-item:hover{background:var(--depth-3)}
+.rail-news-item:last-child{border-bottom:none}
+.news-tag{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:10px;margin-bottom:5px;display:inline-block}
+.news-headline{font-size:11px;color:var(--white);line-height:1.4;margin-bottom:3px}
+.news-meta{font-size:10px;color:var(--muted)}
+
+/* CENTER STAGE */
+.center-stage{overflow-y:auto;padding:0;scroll-behavior:smooth;background:var(--depth-1);display:flex;flex-direction:column}
+.center-stage::-webkit-scrollbar{width:4px}
+.center-stage::-webkit-scrollbar-track{background:transparent}
+.center-stage::-webkit-scrollbar-thumb{background:var(--depth-4);border-radius:2px}
+
+.chapter-canvas{padding:40px 48px 120px;max-width:760px;margin:0 auto;animation:fadeUp .4s var(--ease)}
+.chapter-canvas.canvas-immersive{padding:0;max-width:none;margin:0}
+
+/* Chapter hero */
+.ch-hero{margin-bottom:32px}
+.ch-category-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;
+  background:var(--ch-color-dim,var(--gold-dim));color:var(--ch-color,var(--gold));
+  border:1px solid var(--ch-color-border,rgba(212,168,67,.25));
+}
+.ch-headline{font-size:32px;font-weight:800;letter-spacing:-.02em;color:var(--white);line-height:1.2;margin-bottom:12px}
+.ch-deck{font-size:17px;color:var(--platinum);line-height:1.7;margin-bottom:20px}
+.ch-meta-row{display:flex;align-items:center;gap:16px;font-size:11px;color:var(--muted)}
+.ch-meta-row span{display:flex;align-items:center;gap:5px}
+.ch-accent-line{height:1px;background:linear-gradient(90deg,var(--ch-color,var(--gold)),transparent);margin-top:24px;opacity:.4}
+
+/* AI framing strip */
+.ai-framing{
+  display:flex;gap:14px;padding:16px 18px;border-radius:12px;margin-bottom:28px;
+  background:var(--electric-dim);border:1px solid var(--border-glow);border-left:3px solid var(--electric);
+}
+.ai-framing-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.ai-framing-text{font-size:13px;color:var(--electric-2);line-height:1.6}
+.ai-framing-text strong{color:var(--white)}
+
+/* Beats */
+.beat{opacity:0;transform:translateY(16px);animation:beatIn .4s var(--ease) forwards;margin-bottom:20px}
+.beat-intro{font-size:16px;color:var(--platinum);line-height:1.8}
+.beat-insight{padding:20px 24px;border-radius:12px;background:var(--depth-3);border:1px solid var(--border)}
+.beat-insight .insight-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.beat-insight .insight-body{font-size:15px;color:var(--white);line-height:1.7}
+.beat-risk{padding:16px 20px;border-radius:10px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-left:3px solid var(--negative)}
+.beat-risk .risk-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--negative);margin-bottom:6px;text-transform:uppercase}
+.beat-action{padding:16px 20px;border-radius:10px;background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.2);border-left:3px solid var(--gold)}
+.beat-action .action-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);margin-bottom:6px;text-transform:uppercase}
+
+/* Metrics row */
+.metrics-row{display:flex;gap:12px;margin:28px 0;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+.metrics-row::-webkit-scrollbar{display:none}
+.metric-card{
+  flex-shrink:0;width:160px;padding:20px 18px;border-radius:14px;
+  background:var(--depth-3);border:1px solid var(--border);scroll-snap-align:start;
+  transition:border-color .2s,transform .2s;
+}
+.metric-card:hover{border-color:var(--ch-color,var(--gold));transform:translateY(-2px)}
+.metric-value{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--white);display:block;margin-bottom:4px}
+.metric-label{font-size:11px;color:var(--muted);margin-bottom:8px;display:block}
+.metric-delta{font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
+.metric-delta.up{color:var(--positive)}
+.metric-delta.down{color:var(--negative)}
+.metric-delta.neutral{color:var(--muted)}
+.sparkline{margin-top:10px}
+
+/* Audio player */
+.audio-player{
+  display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:14px;
+  background:var(--depth-3);border:1px solid var(--border);margin:28px 0;
+  transition:border-color .2s;
+}
+.audio-player:hover{border-color:rgba(212,168,67,.3)}
+.player-art{
+  width:48px;height:48px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  background:linear-gradient(135deg,var(--ch-color,var(--gold)),var(--depth-4));
+}
+.play-btn{
+  width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;
+  background:var(--member-color);display:flex;align-items:center;justify-content:center;
+  font-size:14px;transition:transform .15s,box-shadow .15s;color:#000;
+}
+.play-btn:hover{transform:scale(1.08);box-shadow:0 0 20px var(--member-color-dim)}
+.player-info{flex:1;min-width:0}
+.player-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-meta{font-size:11px;color:var(--muted);margin-bottom:8px}
+.progress-track{height:4px;background:var(--depth-4);border-radius:2px;cursor:pointer;position:relative;margin-bottom:4px}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--member-color),var(--gold-light));pointer-events:none;transition:width .1s linear}
+.progress-thumb{width:10px;height:10px;border-radius:50%;background:var(--white);position:absolute;top:50%;transform:translate(-50%,-50%);pointer-events:none;transition:left .1s linear}
+.time-row{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--muted)}
+.player-controls{display:flex;align-items:center;gap:8px}
+.speed-btn{
+  padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--depth-4);
+  font-size:11px;font-family:var(--mono);color:var(--platinum);cursor:pointer;transition:border-color .2s;
+}
+.speed-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* Waveform */
+.waveform{display:flex;align-items:center;gap:2px;height:24px;margin-left:8px}
+.wv-bar{width:3px;border-radius:2px;background:var(--member-color);opacity:.6;transform-origin:bottom}
+
+/* Deep dive */
+.deep-dive-trigger{
+  display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:10px;cursor:pointer;
+  border:1px dashed var(--border);background:transparent;width:100%;text-align:left;
+  font-size:13px;color:var(--platinum);transition:border-color .2s,background .2s;margin-top:8px;
+}
+.deep-dive-trigger:hover{border-color:var(--electric);background:var(--electric-dim);color:var(--electric-2)}
+.deep-dive-content{overflow:hidden;max-height:0;transition:max-height .5s var(--ease);margin-top:8px}
+.deep-dive-content.open{max-height:600px}
+.deep-dive-inner{padding:20px;border-radius:10px;background:var(--depth-3);border:1px solid var(--border)}
+
+/* RIGHT PANEL */
+.ai-panel{
+  background:var(--depth-2);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;transition:width .3s var(--ease),opacity .3s;
+}
+.ai-panel-header{
+  display:flex;align-items:center;gap:12px;padding:16px 20px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.ai-orb{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(from 0deg,var(--electric),var(--gold),var(--electric));
+  animation:orb-spin 4s linear infinite;position:relative;
+}
+.ai-orb::after{content:'✦';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--depth-3);border-radius:50%;margin:3px;color:var(--electric-2)}
+.ai-panel-title{flex:1}
+.ai-panel-title strong{font-size:13px;font-weight:700;color:var(--white);display:block}
+.ai-panel-title span{font-size:10px;color:var(--muted)}
+.collapse-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;transition:color .2s;padding:4px}
+.collapse-btn:hover{color:var(--white)}
+
+.ai-context{
+  margin:12px 16px;padding:8px 12px;border-radius:8px;
+  background:var(--depth-3);border:1px solid var(--border);font-size:11px;
+  color:var(--platinum);display:flex;align-items:center;gap:6px;
+}
+.ai-context-dot{width:5px;height:5px;border-radius:50%;background:var(--electric);animation:live-pulse 2s infinite}
+
+.ai-conversation{flex:1;overflow-y:auto;padding:8px 16px;display:flex;flex-direction:column;gap:12px}
+.ai-conversation::-webkit-scrollbar{width:3px}
+.ai-conversation::-webkit-scrollbar-thumb{background:var(--depth-4);border-radius:2px}
+.ai-msg{padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.6;animation:fadeUp .3s var(--ease)}
+.ai-msg.ai{background:var(--depth-3);border:1px solid var(--border);color:var(--platinum)}
+.ai-msg.ai strong{color:var(--white)}
+.ai-msg.user{background:var(--electric-dim);border:1px solid var(--border-glow);color:var(--electric-2);text-align:right}
+.ai-thinking{display:flex;gap:5px;padding:12px 14px}
+.think-dot{width:7px;height:7px;border-radius:50%;background:var(--electric);animation:pulse-dot 1s ease-in-out infinite}
+.think-dot:nth-child(2){animation-delay:.15s}
+.think-dot:nth-child(3){animation-delay:.3s}
+
+.ai-suggestions{padding:8px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.suggestion-label{font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
+.suggestion-chips{display:flex;flex-direction:column;gap:6px}
+.suggestion-chip{
+  padding:8px 12px;border-radius:8px;font-size:12px;color:var(--platinum);cursor:pointer;
+  border:1px solid var(--border);background:var(--depth-3);text-align:left;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.suggestion-chip:hover{border-color:var(--electric);color:var(--white);background:var(--electric-dim)}
+
+.ai-input-row{
+  display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;
+}
+.ai-input{
+  flex:1;padding:10px 14px;border-radius:10px;border:1px solid var(--border);
+  background:var(--depth-3);color:var(--white);font-family:var(--font);font-size:13px;outline:none;
+  transition:border-color .2s;resize:none;
+}
+.ai-input:focus{border-color:var(--electric)}
+.ai-input::placeholder{color:var(--muted)}
+.ai-send{
+  width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;
+  background:var(--electric);color:#fff;font-size:16px;transition:background .2s,transform .15s;flex-shrink:0;
+}
+.ai-send:hover{background:var(--electric-2);transform:scale(1.05)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes beatIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pulse-dot{0%,100%{transform:scale(.6);opacity:.4}50%{transform:scale(1);opacity:1}}
+@keyframes live-pulse{0%,100%{box-shadow:0 0 0 0 currentColor}50%{box-shadow:0 0 0 4px rgba(34,197,94,.15)}}
+@keyframes orb-spin{to{filter:hue-rotate(360deg)}}
+@keyframes barGrow{from{width:0}to{width:var(--w,0%)}}
+@keyframes aumGrow{from{width:0}to{width:var(--w,0%)}}
+@keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes identity-pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes identity-gold{0%,100%{opacity:.3;transform:scale(1.1)}50%{opacity:.7;transform:scale(1)}}
+@keyframes radialIn{from{stroke-dasharray:0 200}to{stroke-dasharray:var(--arc,100) 200}}
+
+/* Scrollbar for center */
+.center-stage{scrollbar-gutter:stable}
+
+/* ── INFOGRAPHICS ── */
+.infographic{
+  margin:28px 0;padding:24px 28px;border-radius:16px;
+  background:var(--depth-3);border:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.infographic::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--ch-color-dim,rgba(212,168,67,.04)) 0%,transparent 60%);pointer-events:none}
+.ig-title{font-size:13px;font-weight:700;color:var(--white);margin-bottom:3px}
+.ig-subtitle{font-size:11px;color:var(--muted);margin-bottom:20px}
+.ig-footnote{font-size:10px;color:var(--muted);margin-top:14px;text-align:center;letter-spacing:.03em}
+
+.ig-bar-chart{display:flex;flex-direction:column;gap:14px;margin-top:18px}
+.ig-bar-row{display:flex;align-items:center;gap:14px}
+.ig-bar-label{font-size:11px;color:var(--platinum);width:110px;flex-shrink:0;text-align:right;letter-spacing:-.01em}
+.ig-bar-track{flex:1;height:7px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;position:relative}
+.ig-bar-fill{height:100%;border-radius:4px;animation:barGrow 1.4s cubic-bezier(0.4,0,0.2,1) forwards;animation-delay:.3s}
+.ig-bar-val{font-size:11px;font-family:var(--mono);color:var(--white);width:58px;flex-shrink:0;font-weight:600}
+
+.ig-svg{width:100%;display:block;margin-top:8px}
+
+.ig-deal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.ig-deal-card{padding:18px 16px;border-radius:12px;background:var(--depth-4);border:1px solid var(--border);border-top:3px solid var(--deal-color,#d4a843);transition:transform .2s,box-shadow .2s;cursor:default}
+.ig-deal-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.ig-deal-sector{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.ig-deal-size{font-size:24px;font-weight:800;font-family:var(--mono);color:var(--white);margin-bottom:12px;letter-spacing:-.03em}
+.ig-deal-irr-track{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.ig-deal-irr-fill{height:100%;border-radius:2px;opacity:.8;animation:barGrow 1.4s var(--ease) forwards;animation-delay:.5s}
+.ig-deal-meta{font-size:10px;color:var(--muted);line-height:1.6}
+
+.ig-radial-grid{display:flex;justify-content:space-around;align-items:center;padding:12px 0 4px;gap:8px}
+.ig-radial{display:flex;flex-direction:column;align-items:center;gap:7px}
+.ig-radial-label{font-size:10px;color:var(--muted);text-align:center;letter-spacing:.02em}
+.ig-radial-circle{animation:radialIn 1.5s var(--ease) forwards;animation-delay:.4s}
+
+.ig-aum-bars{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.ig-aum-bar-row{display:flex;align-items:center;gap:14px}
+.ig-aum-label{font-size:11px;color:var(--platinum);width:58px;flex-shrink:0}
+.ig-aum-track{flex:1;height:10px;background:rgba(255,255,255,.05);border-radius:5px;overflow:hidden}
+.ig-aum-fill{height:100%;border-radius:5px;animation:aumGrow 1.4s var(--ease) forwards;animation-delay:.3s}
+.ig-aum-val{font-size:11px;font-family:var(--mono);color:var(--white);width:74px;flex-shrink:0;font-weight:600}
+.ig-retention{font-size:11px;color:var(--muted);margin-top:16px;padding-top:14px;border-top:1px solid var(--border);text-align:center}
+
+/* ── RAIL NEWS REDESIGN ── */
+.rail-news-item{
+  margin:0 10px 6px;padding:10px 12px;border-radius:10px;
+  border:1px solid var(--border);border-left:3px solid var(--ni-color,var(--electric));
+  background:var(--depth-3);cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.rail-news-item::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--ni-bg,transparent) 0%,transparent 70%);pointer-events:none;opacity:.5}
+.rail-news-item:hover{transform:translateX(3px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.rail-news-item:last-child{margin-bottom:0}
+.news-tag{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;margin-bottom:5px;display:inline-block}
+.news-headline{font-size:11px;color:var(--white);line-height:1.45;margin-bottom:4px}
+.news-meta{font-size:10px;color:var(--muted)}
+
+/* ── CONTENT TABS ── */
+.content-tab-bar{
+  position:sticky;top:0;z-index:8;flex-shrink:0;
+  display:flex;align-items:center;
+  background:var(--depth-2);border-bottom:1px solid var(--border);
+  padding:0 28px;gap:4px;
+}
+.content-tab{
+  padding:13px 18px;background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font);
+  letter-spacing:.02em;transition:color .2s,border-color .2s;
+  display:flex;align-items:center;gap:8px;
+}
+.content-tab:hover{color:var(--white)}
+.content-tab.active{color:var(--member-color);border-bottom-color:var(--member-color)}
+.tab-icon{font-size:13px;opacity:.8}
+
+/* ── PODCAST VIEW ── */
+.podcast-view{
+  padding:36px 48px 60px;max-width:760px;margin:0 auto;width:100%;
+  display:flex;flex-direction:column;gap:28px;animation:fadeUp .4s var(--ease);
+}
+.podcast-hero{
+  padding:32px 32px 28px;border-radius:20px;background:var(--depth-3);
+  border:1px solid var(--border);display:flex;gap:28px;align-items:flex-start;
+  position:relative;overflow:hidden;
+}
+.podcast-hero::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--ch-color-dim,rgba(212,168,67,.06)) 0%,transparent 60%);
+  pointer-events:none;
+}
+.podcast-art{
+  width:88px;height:88px;flex-shrink:0;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:42px;
+  background:linear-gradient(135deg,var(--ch-color,var(--gold)),var(--depth-4));
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.podcast-info{flex:1;min-width:0;position:relative}
+.podcast-cat{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:6px}
+.podcast-title{font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--white);line-height:1.2;margin-bottom:4px}
+.podcast-meta{font-size:12px;color:var(--platinum);margin-bottom:20px}
+.podcast-controls{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.podcast-play{
+  width:50px;height:50px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;
+  background:var(--member-color);color:#000;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s,box-shadow .15s;
+}
+.podcast-play:hover{transform:scale(1.08);box-shadow:0 0 28px var(--member-color-dim)}
+.podcast-wv{display:flex;align-items:center;gap:2px;height:36px;flex:1}
+.podcast-speed{
+  padding:5px 10px;border-radius:7px;border:1px solid var(--border);
+  background:var(--depth-4);font-size:12px;font-family:var(--mono);
+  color:var(--platinum);cursor:pointer;transition:border-color .2s;flex-shrink:0;
+}
+.podcast-speed:hover{border-color:var(--member-color);color:var(--member-color)}
+.podcast-progress{height:4px;background:var(--depth-4);border-radius:2px;cursor:pointer;position:relative}
+.podcast-progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--member-color),var(--gold-light));pointer-events:none;transition:width .1s linear}
+.podcast-progress-thumb{width:10px;height:10px;border-radius:50%;background:var(--white);position:absolute;top:50%;transform:translate(-50%,-50%);pointer-events:none;transition:left .1s linear}
+.podcast-time{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:5px}
+.news-cards-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.news-cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.news-card{
+  padding:16px;border-radius:12px;background:var(--depth-3);
+  border:1px solid var(--border);border-left:3px solid var(--nc-color,var(--electric));
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.news-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--nc-bg,transparent) 0%,transparent 60%);pointer-events:none;opacity:.5}
+.news-card:hover{transform:translateX(3px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.news-card-tag{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;margin-bottom:8px;display:inline-block}
+.news-card-head{font-size:13px;font-weight:600;color:var(--white);line-height:1.5;margin-bottom:5px;position:relative}
+.news-card-foot{font-size:10px;color:var(--muted);position:relative}
+
+/* ── INFOGRAPHICS VIEW ── */
+.ig-full-view{
+  padding:36px 48px 60px;max-width:760px;margin:0 auto;width:100%;
+  display:flex;flex-direction:column;gap:28px;animation:fadeUp .4s var(--ease);
+}
+.ig-full-view .infographic{margin:0;padding:28px 32px}
+.ig-news-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.ig-news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ig-news-card{
+  padding:16px 14px;border-radius:12px;background:var(--depth-3);
+  border:1px solid var(--border);border-top:3px solid var(--inc-color,var(--electric));
+  cursor:pointer;transition:transform .2s,box-shadow .2s;
+  position:relative;overflow:hidden;
+}
+.ig-news-card::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--inc-bg,transparent) 0%,transparent 70%);pointer-events:none;opacity:.4}
+.ig-news-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.35)}
+.ig-news-tag{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:10px;margin-bottom:8px;display:inline-block;position:relative}
+.ig-news-head{font-size:12px;font-weight:600;color:var(--white);line-height:1.5;margin-bottom:5px;position:relative}
+.ig-news-foot{font-size:10px;color:var(--muted);position:relative}
+
+/* ── NEWS STRIP ── */
+.news-strip{
+  position:sticky;top:44px;z-index:7;flex-shrink:0;
+  display:flex;align-items:stretch;gap:10px;
+  padding:10px 28px;overflow-x:auto;
+  background:var(--depth-1);border-bottom:1px solid var(--border);
+}
+.news-strip::-webkit-scrollbar{display:none}
+.ns-card{
+  flex-shrink:0;width:200px;padding:10px 12px;border-radius:10px;
+  background:var(--depth-3);border:1px solid var(--border);
+  border-top:2px solid var(--nsc,var(--electric));
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.ns-card::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--nsbg,transparent) 0%,transparent 60%);pointer-events:none;opacity:.4}
+.ns-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.ns-tag{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--nsc,var(--electric));margin-bottom:4px;display:block;position:relative}
+.ns-head{font-size:11px;font-weight:500;color:var(--white);line-height:1.4;margin-bottom:3px;position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ns-foot{font-size:9px;color:var(--muted);position:relative}
+
+/* ── PANEL TABS ── */
+.panel-tabs{
+  display:flex;gap:2px;padding:0 16px;
+  border-bottom:1px solid var(--border);flex-shrink:0;background:var(--depth-2);
+}
+.panel-tab{
+  padding:9px 12px;background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font);
+  letter-spacing:.02em;transition:color .2s,border-color .2s;
+}
+.panel-tab:hover{color:var(--white)}
+.panel-tab.active{color:var(--member-color);border-bottom-color:var(--member-color)}
+.learn-card{
+  padding:14px 14px;border-radius:12px;background:var(--depth-3);
+  border:1px solid var(--border);border-left:3px solid var(--lc-color,var(--electric));
+  margin-bottom:10px;
+}
+.learn-card:last-child{margin-bottom:0}
+.lc-tag{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--lc-color,var(--electric));margin-bottom:5px}
+.lc-title{font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px;line-height:1.3}
+.lc-body{font-size:12px;color:var(--platinum);line-height:1.7}
+.ap-item{
+  padding:12px 14px;border-radius:10px;background:var(--depth-3);
+  border:1px solid var(--border);margin-bottom:8px;
+}
+.ap-item:last-child{margin-bottom:0}
+.ap-chapter{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.ap-ch-icon{font-size:11px}
+.ap-ch-name{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.ap-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.ap-text{font-size:12px;color:var(--white);line-height:1.6}
+
+/* ── INFOGRAPHIC EXPANDED ── */
+.ig-section{margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06)}
+.ig-section-title{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.ig-2col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.ig-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.ig-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.ig-header-left{}
+.ig-header-sup{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin-bottom:4px}
+.ig-header-name{font-size:22px;font-weight:800;color:var(--white);letter-spacing:-.02em}
+.ig-hero-stat{text-align:right}
+.ig-hero-num{font-size:40px;font-weight:800;font-family:var(--mono);line-height:1;letter-spacing:-.04em}
+.ig-hero-label{font-size:10px;color:var(--muted);margin-top:3px}
+.ig-donut-wrap{display:flex;align-items:center;gap:18px}
+.ig-legend{display:flex;flex-direction:column;gap:9px}
+.ig-legend-item{display:flex;align-items:center;gap:8px}
+.ig-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.ig-legend-name{font-size:12px;font-weight:600;color:var(--white)}
+.ig-legend-pct{font-size:10px;color:var(--muted);margin-left:2px}
+.ig-kv-row{display:flex;gap:0;margin-top:20px;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px}
+.ig-kv{flex:1;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06)}
+.ig-kv:first-child{padding-left:0}
+.ig-kv:last-child{border-right:none}
+.ig-kv-val{font-size:18px;font-weight:800;font-family:var(--mono);color:var(--white);letter-spacing:-.02em}
+.ig-kv-label{font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.04em}
+.ig-table{width:100%;border-collapse:collapse}
+.ig-table td,.ig-table th{padding:7px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.ig-table th{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-bottom:8px}
+.ig-table td:last-child,.ig-table th:last-child{text-align:right}
+.ig-gantt{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.ig-gantt-row{display:flex;align-items:center;gap:10px}
+.ig-gantt-label{font-size:10px;color:var(--platinum);width:130px;flex-shrink:0;text-align:right;line-height:1.3}
+.ig-gantt-track{flex:1;height:22px;background:rgba(255,255,255,0.04);border-radius:4px;position:relative;overflow:hidden}
+.ig-gantt-bar{position:absolute;top:3px;height:16px;border-radius:3px;display:flex;align-items:center;padding:0 8px;font-size:9px;font-weight:700;font-family:var(--mono);animation:barGrow 1.4s var(--ease) forwards}
+.ig-deal-expanded{padding:20px;border-radius:14px;background:var(--depth-4);border:1px solid var(--border);border-top:3px solid var(--de-color,var(--gold))}
+.ig-deal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.ig-deal-name{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.ig-deal-urgency{font-size:9px;color:#ef4444;background:rgba(239,68,68,.1);padding:2px 7px;border-radius:10px;border:1px solid rgba(239,68,68,.2)}
+.ig-deal-amount{font-size:26px;font-weight:800;font-family:var(--mono);color:var(--white);letter-spacing:-.03em;margin-bottom:10px}
+.ig-deal-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.ig-deal-metric{background:rgba(255,255,255,.03);border-radius:6px;padding:6px 8px}
+.ig-deal-metric-val{font-size:14px;font-weight:700;font-family:var(--mono);color:var(--white)}
+.ig-deal-metric-key{font-size:9px;color:var(--muted);margin-top:1px}
+.ig-bar-h{height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin-top:10px}
+.ig-bar-h-fill{height:100%;border-radius:3px;animation:barGrow 1.4s var(--ease) forwards}
+.ig-esg-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
+.ig-esg-gauge{display:flex;flex-direction:column;align-items:center;gap:6px}
+.ig-esg-gauge-label{font-size:10px;color:var(--muted);text-align:center;line-height:1.3}
+.ig-wfall{display:flex;align-items:flex-end;gap:8px;height:110px;padding-bottom:20px;position:relative}
+.ig-wfall::after{content:'';position:absolute;bottom:20px;left:0;right:0;height:1px;background:rgba(255,255,255,0.06)}
+.ig-wfall-bar{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.ig-wfall-col{width:100%;border-radius:4px 4px 0 0;min-height:4px;animation:aumGrow 1.4s var(--ease) forwards;position:relative}
+.ig-wfall-val{font-size:10px;font-family:var(--mono);font-weight:700;color:var(--white)}
+.ig-wfall-key{font-size:9px;color:var(--muted);text-align:center;line-height:1.3;position:absolute;bottom:-18px;width:140%;left:-20%}
+.ig-related-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
+.ig-related-card{padding:14px 12px;border-radius:10px;background:var(--depth-4);border:1px solid var(--border);cursor:pointer;transition:transform .15s,border-color .2s;border-top:2px solid var(--rc-color,var(--electric))}
+.ig-related-card:hover{transform:translateY(-2px);border-color:var(--rc-color,var(--electric))}
+.ig-related-icon{font-size:18px;margin-bottom:6px}
+.ig-related-name{font-size:11px;font-weight:600;color:var(--white);line-height:1.3;margin-bottom:3px}
+.ig-related-meta{font-size:9px;color:var(--muted)}
+/* Podcast related cards */
+.related-pod-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.related-pod-card{padding:16px;border-radius:12px;background:var(--depth-3);border:1px solid var(--border);border-left:3px solid var(--rpc-color,var(--member-color));cursor:pointer;transition:transform .15s,box-shadow .15s}
+.related-pod-card:hover{transform:translateX(3px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.rpc-duration{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rpc-color,var(--member-color));margin-bottom:5px}
+.rpc-title{font-size:12px;font-weight:700;color:var(--white);line-height:1.4;margin-bottom:4px}
+.rpc-guest{font-size:10px;color:var(--muted);margin-bottom:5px}
+.rpc-desc{font-size:11px;color:var(--platinum);line-height:1.5}
+
+/* ── MEETING PREP ENTRY POINTS ── */
+.prep-section{padding:14px 10px 10px;border-top:1px solid rgba(255,255,255,0.05);margin-top:12px}
+.prep-section-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding:0 6px}
+.prep-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;
+  transition:background .15s,transform .12s;border:1px solid transparent;
+  position:relative;
+}
+.prep-item:hover{background:var(--depth-3);border-color:var(--border);transform:translateX(2px)}
+.prep-item-orb{
+  width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;background:var(--pi-bg,var(--depth-4));
+  border:1px solid var(--pi-border,var(--border));
+}
+.prep-item-body{flex:1;min-width:0}
+.prep-item-name{font-size:11px;font-weight:600;color:var(--white)}
+.prep-item-sub{font-size:9px;color:var(--muted);margin-top:1px}
+.prep-item-arrow{font-size:10px;color:var(--muted);transition:color .15s,transform .15s}
+.prep-item:hover .prep-item-arrow{color:var(--white);transform:translateX(2px)}
+.prep-item-badge{position:absolute;right:30px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:700;padding:1px 5px;border-radius:8px;letter-spacing:.04em}
+
+/* ── PREP MODAL OVERLAY ── */
+.prep-modal{
+  position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s var(--ease);
+}
+.prep-modal.open{opacity:1;pointer-events:all}
+.prep-modal-bg{position:absolute;inset:0;background:rgba(5,5,8,.82);backdrop-filter:blur(6px)}
+.prep-modal-panel{
+  position:relative;z-index:1;
+  width:1020px;max-width:calc(100vw - 48px);
+  height:82vh;max-height:780px;
+  background:var(--depth-2);border:1px solid var(--border);border-radius:20px;
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:translateY(18px) scale(.97);transition:transform .3s var(--ease);
+}
+.prep-modal.open .prep-modal-panel{transform:none}
+.prep-modal-header{
+  display:flex;align-items:center;gap:14px;padding:18px 24px;
+  border-bottom:1px solid var(--border);flex-shrink:0;background:var(--depth-2);
+}
+.prep-modal-icon{font-size:16px;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--pmi-bg,var(--depth-4));border:1px solid var(--border)}
+.prep-modal-title-block{flex:1}
+.prep-modal-title{font-size:15px;font-weight:700;color:var(--white);letter-spacing:-.01em}
+.prep-modal-subtitle{font-size:11px;color:var(--muted);margin-top:1px}
+.prep-modal-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-size:14px;transition:color .15s,background .15s}
+.prep-modal-close:hover{background:var(--depth-3);color:var(--white)}
+.prep-modal-body{flex:1;overflow:hidden;display:flex}
+
+/* ── LEARN SUMMARY ── */
+.learn-summary{padding:14px 16px;border-radius:12px;background:var(--depth-3);border:1px solid var(--border);border-left:3px solid var(--lsc,var(--electric));margin-bottom:4px}
+.learn-summary-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--lsc,var(--electric));margin-bottom:6px;opacity:.8}
+.learn-summary-headline{font-size:13px;font-weight:700;color:var(--white);line-height:1.4;margin-bottom:7px}
+.learn-summary-deck{font-size:11px;color:var(--platinum);line-height:1.65}
+.learn-divider{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:18px 0 12px;padding-top:14px;border-top:1px solid var(--border)}
+
+/* ── SIMULATION ROOM ── */
+.sim-layout{display:grid;grid-template-columns:1fr 210px;height:100%}
+.sim-main{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+.sim-prog-row{display:flex;flex-shrink:0}
+.sim-prog-seg{flex:1;height:3px;background:var(--depth-4);transition:background .35s}
+.sim-prog-seg.done{background:var(--member-color)}
+.sim-prog-seg.active{background:var(--member-color);opacity:.45}
+.sim-card-area{flex:1;overflow-y:auto;padding:28px 36px;display:flex;flex-direction:column;gap:16px}
+.sim-card-area::-webkit-scrollbar{width:3px}
+.sim-card-area::-webkit-scrollbar-thumb{background:var(--depth-4)}
+.sim-question-card{padding:22px 24px;border-radius:14px;background:var(--depth-3);border:1px solid var(--border);border-left:4px solid var(--sqc,var(--electric))}
+.sim-q-who{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sim-q-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:1.5px solid var(--qac,var(--border))}
+.sim-q-name{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--qac,var(--muted))}
+.sim-q-num{font-size:9px;color:var(--muted);margin-left:auto}
+.sim-q-text{font-size:14px;color:var(--white);line-height:1.75}
+.sim-reveal-btn{align-self:flex-start;padding:9px 18px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.sim-reveal-btn:hover{border-color:var(--electric);color:var(--white)}
+.sim-answer-reveal{padding:16px 20px;border-radius:12px;background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);animation:fadeUp .25s var(--ease)}
+.sim-answer-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--electric-2);margin-bottom:8px}
+.sim-answer-text{font-size:12px;color:var(--platinum);line-height:1.7}
+.sim-rate-section{display:flex;flex-direction:column;gap:8px}
+.sim-rate-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+.sim-rate-btns{display:flex;gap:8px}
+.sim-rate-btn{flex:1;padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--depth-3);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;font-family:var(--font);display:flex;flex-direction:column;align-items:center;gap:3px}
+.sim-rate-btn span{font-size:9px;font-weight:400;opacity:.6}
+.sim-rate-btn.gap{color:#ef4444}.sim-rate-btn.gap:hover,.sim-rate-btn.gap.chosen{background:rgba(239,68,68,.1);border-color:#ef4444}
+.sim-rate-btn.ok{color:#f59e0b}.sim-rate-btn.ok:hover,.sim-rate-btn.ok.chosen{background:rgba(245,158,11,.1);border-color:#f59e0b}
+.sim-rate-btn.strong{color:#22c55e}.sim-rate-btn.strong:hover,.sim-rate-btn.strong.chosen{background:rgba(34,197,94,.1);border-color:#22c55e}
+.sim-next-row{display:flex;align-items:center;gap:12px;padding:12px 36px;border-top:1px solid var(--border);flex-shrink:0}
+.sim-next-btn{padding:10px 22px;background:var(--electric);border:none;border-radius:8px;color:#fff;font-weight:600;font-size:12px;cursor:pointer;transition:opacity .15s;font-family:var(--font)}
+.sim-next-btn:hover{opacity:.85}
+.sim-next-lbl{font-size:11px;color:var(--muted)}
+.sim-sidebar{padding:18px 14px;background:var(--depth-1);display:flex;flex-direction:column;overflow-y:auto}
+.sim-sidebar::-webkit-scrollbar{display:none}
+.sim-sidebar-title{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.sim-score-item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px}
+.sim-score-item:last-child{border-bottom:none}
+.sim-score-icon{font-size:11px;width:18px;text-align:center}
+.sim-score-name{font-size:10px;color:var(--platinum);flex:1;line-height:1.3}
+.sim-score-dots{display:flex;gap:3px}
+.sim-score-dot{width:6px;height:6px;border-radius:50%;background:var(--depth-4);border:1px solid rgba(255,255,255,.1)}
+.sim-score-dot.fill{background:var(--member-color);border-color:var(--member-color)}
+.sim-overall-box{margin-top:16px;padding:12px;border-radius:10px;background:var(--depth-3);border:1px solid var(--border);text-align:center}
+.sim-overall-pct{font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-.03em;line-height:1}
+.sim-overall-lbl{font-size:9px;color:var(--muted);margin-top:3px}
+
+/* ── STAKES DETECTOR ── */
+.sd-layout{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.sd-top-bar{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--depth-2)}
+.sd-member-strip{display:flex;gap:0;flex:1}
+.sd-av-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;flex:1;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:border-color .15s;font-family:var(--font)}
+.sd-av-ring{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:1.5px solid var(--avr-color,var(--border));transition:border-color .15s,box-shadow .15s}
+.sd-av-btn.active .sd-av-ring{box-shadow:0 0 0 2px var(--avr-color)}
+.sd-av-name{font-size:8px;color:var(--muted);transition:color .15s}
+.sd-av-btn.active .sd-av-name{color:var(--white)}
+.sd-av-btn.active{border-bottom-color:var(--avr-color)}
+.sd-chapter-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--depth-2)}
+.sd-ch-tab{flex:1;padding:9px 4px;font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:var(--font);text-align:center;white-space:nowrap}
+.sd-ch-tab.active{color:var(--sdct,var(--member-color));border-bottom-color:var(--sdct,var(--member-color))}
+.sd-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:12px}
+.sd-body::-webkit-scrollbar{width:3px}
+.sd-body::-webkit-scrollbar-thumb{background:var(--depth-4)}
+.sd-decision-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sd-decision-text{font-size:13px;font-weight:600;color:var(--white);line-height:1.5;padding:14px 16px;border-radius:12px;background:var(--depth-3);border:1px solid var(--border)}
+.sd-stakes-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.sd-stake-row{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:10px;border:1px solid transparent}
+.sd-stake-row.you{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.07)}
+.sd-stake-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;border:1.5px solid var(--sav-color,var(--border))}
+.sd-stake-info{flex:1;min-width:0}
+.sd-stake-who{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--sav-color,var(--muted));margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.sd-you-badge{font-size:7px;background:var(--member-color);color:#000;padding:1px 5px;border-radius:6px;font-weight:800;letter-spacing:.06em}
+.sd-stake-text{font-size:11px;color:var(--platinum);line-height:1.6}
+.sd-impact-bar{display:flex;gap:3px;margin-top:6px}
+.sd-impact-pip{width:16px;height:3px;border-radius:2px;background:var(--depth-4)}
+.sd-impact-pip.fill{background:var(--sid-color,var(--gold))}
+
+/* ── MEMBER CARD 3D ── */
+.member-grid{perspective:1000px}
+.member-card{transform-style:preserve-3d;transition:box-shadow .25s,border-color .25s,opacity .3s}
+
+/* ── IDENTITY GATE ENHANCEMENT ── */
+#screen-identity::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(99,102,241,0.1) 0%,transparent 70%);pointer-events:none;animation:identity-pulse 8s ease-in-out infinite}
+#screen-identity::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(212,168,67,0.07) 0%,transparent 60%);pointer-events:none;animation:identity-gold 10s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="loading-text" id="loading-text">Analyzing your profile...</div>
+  <div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+</div>
+
+<!-- ══ SCREEN 1: IDENTITY GATE ══ -->
+<div class="screen" id="screen-identity">
+  <div class="id-logo">MMM Investment Group</div>
+  <div class="id-wordmark">MMM<span>Brief</span></div>
+  <div class="id-tagline">AI Meeting Intelligence · Q2 Leadership Meeting</div>
+  <div class="member-grid" id="member-grid"></div>
+</div>
+
+<!-- ══ SCREEN 2: BRIEFING ROOM ══ -->
+<div class="screen hidden" id="screen-brief">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-logo">MMM</div>
+    <div class="top-divider"></div>
+    <div class="meeting-badge"><div class="live-dot"></div>Q2 Leadership Meeting</div>
+    <div class="top-divider"></div>
+    <span style="font-size:12px;color:var(--muted)">June 11, 2026</span>
+    <div class="top-spacer"></div>
+    <div class="member-chip" id="member-chip" onclick="switchMember()">
+      <div class="chip-avatar" id="chip-avatar"></div>
+      <div class="chip-name" id="chip-name"></div>
+      <div class="chip-badge">AI-Personalized</div>
+    </div>
+    <div class="reading-bar" id="reading-bar"></div>
+  </div>
+
+  <!-- LEFT RAIL -->
+  <div class="left-rail">
+    <div class="rail-meeting-header">
+      <div class="rail-meeting-name">MMM Q2 Leadership Meeting</div>
+      <div class="rail-meeting-date">June 11, 2026 · Q2 Review</div>
+    </div>
+    <div class="rail-scroll">
+      <div class="rail-section-label" style="margin-top:4px">Meeting Material</div>
+      <div>
+        <div class="rail-material-item"><span class="material-icon">◈</span>Business Outlook</div>
+        <div class="rail-material-item"><span class="material-icon">⬡</span>Market Outlook</div>
+        <div class="rail-material-item"><span class="material-icon">◎</span>Process Review</div>
+        <div class="rail-material-item"><span class="material-icon">◆</span>Performance Review</div>
+        <div class="rail-material-item"><span class="material-icon">◉</span>HR</div>
+      </div>
+
+      <div class="rail-section-label" style="margin-top:16px">Briefs</div>
+      <div class="chapter-nav" id="chapter-nav"></div>
+
+      <div class="prep-section">
+        <div class="prep-section-label">Meeting Prep</div>
+        <div class="prep-item" onclick="openPrepModal('sim')" style="--pi-bg:rgba(99,102,241,.1);--pi-border:rgba(99,102,241,.2)">
+          <div class="prep-item-orb" style="color:#818cf8">▷</div>
+          <div class="prep-item-body">
+            <div class="prep-item-name">Simulation Room</div>
+            <div class="prep-item-sub">Rehearse before you walk in</div>
+          </div>
+          <div class="prep-item-arrow">→</div>
+        </div>
+        <div class="prep-item" onclick="openPrepModal('stakes')" style="--pi-bg:rgba(212,168,67,.08);--pi-border:rgba(212,168,67,.18)">
+          <div class="prep-item-orb" style="color:#d4a843">⚡</div>
+          <div class="prep-item-body">
+            <div class="prep-item-name">Stakes Detector</div>
+            <div class="prep-item-sub">Decisions &amp; personal impact</div>
+          </div>
+          <div class="prep-item-arrow">→</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CENTER STAGE -->
+  <div class="center-stage" id="center-stage">
+    <div class="content-tab-bar" id="content-tab-bar">
+      <button class="content-tab active" data-mode="brief" onclick="switchMode('brief')">
+        <span class="tab-icon">◈</span> Brief
+      </button>
+      <button class="content-tab" data-mode="podcast" onclick="switchMode('podcast')">
+        <span class="tab-icon">▶</span> Podcast
+      </button>
+      <button class="content-tab" data-mode="infographics" onclick="switchMode('infographics')">
+        <span class="tab-icon">◉</span> Infographics
+      </button>
+    </div>
+    <div class="news-strip" id="news-strip"></div>
+    <div class="chapter-canvas" id="chapter-canvas"></div>
+  </div>
+
+  <!-- AI PANEL -->
+  <div class="ai-panel" id="ai-panel">
+    <div class="ai-panel-header">
+      <div class="ai-orb"></div>
+      <div class="ai-panel-title"><strong>Knowledge Center</strong><span>AI · Summary · Learn · Actions</span></div>
+      <button class="collapse-btn" onclick="togglePanel()">⟩</button>
+    </div>
+
+    <!-- Panel mode tabs -->
+    <div class="panel-tabs">
+      <button class="panel-tab active" data-pt="ai" onclick="switchPanelMode('ai')">✦ AI</button>
+      <button class="panel-tab" data-pt="summary" onclick="switchPanelMode('summary')">◈ Summary</button>
+      <button class="panel-tab" data-pt="learn" onclick="switchPanelMode('learn')">◎ Learn</button>
+      <button class="panel-tab" data-pt="actions" onclick="switchPanelMode('actions')">→ Actions</button>
+    </div>
+
+    <!-- AI MODE -->
+    <div id="panel-ai" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="ai-context"><div class="ai-context-dot"></div><span id="ai-context-text">Select a chapter to begin</span></div>
+      <div class="ai-conversation" id="ai-conversation"></div>
+      <div class="ai-suggestions" id="ai-suggestions">
+        <div class="suggestion-label">Ask about this section</div>
+        <div class="suggestion-chips" id="suggestion-chips"></div>
+      </div>
+      <div class="ai-input-row">
+        <textarea class="ai-input" id="ai-input" rows="1" placeholder="Ask anything about this brief..."></textarea>
+        <button class="ai-send" id="ai-send-btn" onclick="sendQuestion()">↑</button>
+      </div>
+    </div>
+
+    <!-- SUMMARY MODE -->
+    <div id="panel-summary" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding:12px 16px">
+      <div id="summary-content"></div>
+    </div>
+
+    <!-- LEARN MODE -->
+    <div id="panel-learn" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding:12px 16px">
+      <div id="learn-content"></div>
+    </div>
+
+    <!-- ACTIONS MODE -->
+    <div id="panel-actions" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding:12px 16px">
+      <div id="actions-content"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const NEWS = [
+  {tag:'AI',tagColor:'#6366f1',tagBg:'rgba(99,102,241,0.12)',headline:'Two Sigma deploys LLM earnings sentiment model across $12B equity book — reports 40bps alpha',source:'Bloomberg',time:'2h ago'},
+  {tag:'Digital Assets',tagColor:'#f59e0b',tagBg:'rgba(245,158,11,0.10)',headline:'BlackRock BUIDL tokenized Treasury fund crosses $1B AUM post-DAMS Act clarity',source:'WSJ',time:'3h ago'},
+  {tag:'Private Credit',tagColor:'#10b981',tagBg:'rgba(16,185,129,0.10)',headline:'Apollo raises $25B direct lending fund — largest in history as banks retreat from corporate lending',source:'Reuters',time:'5h ago'},
+  {tag:'SpaceX',tagColor:'#f97316',tagBg:'rgba(249,115,22,0.10)',headline:'Starlink surpasses 80M subscribers; revenue run-rate hits $8B ahead of IPO preparations',source:'FT',time:'6h ago'},
+  {tag:'Cryptography',tagColor:'#f59e0b',tagBg:'rgba(245,158,11,0.10)',headline:'ZK-proof settlement platform processes $2B in institutional Treasury trades in first week live',source:'CoinDesk',time:'8h ago'},
+  {tag:'AI Regulation',tagColor:'#6366f1',tagBg:'rgba(99,102,241,0.12)',headline:'SEC proposes mandatory AI model documentation rules for asset managers using algorithmic trading',source:'Financial Times',time:'1d ago'},
+];
+
+const PODCASTS = {
+  ai:[
+    {title:'The AI-Native Fund: How Quant Meets LLM in Portfolio Management',guest:'Cliff Asness · AQR Capital Management',duration:'48 min',color:'#6366f1',desc:'How leading quant shops are integrating large language models with systematic strategies — and what it means for alpha decay and edge.'},
+    {title:'Generative AI in Finance: From Hype to Infrastructure',guest:'David Siegel · Two Sigma',duration:'41 min',color:'#d4a843',desc:'Practical applications of GenAI in research workflows, risk modeling, and client reporting — the tools that are actually saving time vs the noise.'},
+    {title:'Regulatory Reckoning: How the SEC is Approaching AI in Trading',guest:'Gary Gensler · MIT (fmr. SEC Chair)',duration:'35 min',color:'#10b981',desc:'The coming regulatory framework for AI-driven trading, model explainability requirements, and what compliance teams need to prepare for now.'},
+  ],
+  crypto:[
+    {title:'Institutional Crypto in 2026: Beyond the ETF',guest:'Michael Sonnenshein · Grayscale',duration:'44 min',color:'#f59e0b',desc:'How institutional adoption has moved from ETF flows to on-chain treasury management, tokenized collateral, and real-world asset protocols.'},
+    {title:'Zero Knowledge Proofs: The Technology Reshaping Finance',guest:'Eli Ben-Sasson · StarkWare',duration:'38 min',color:'#6366f1',desc:'How ZK cryptography enables private, verifiable computation — and why every major bank is running a proof-of-concept right now.'},
+    {title:'Digital Asset Regulation: What 2026 Actually Changes',guest:'Perianne Boring · Digital Chamber',duration:'31 min',color:'#10b981',desc:'The regulatory landscape after the Digital Asset Market Structure Act — custody rules, stablecoin frameworks, and what institutional access now looks like.'},
+  ],
+  credit:[
+    {title:'Private Credit at $2 Trillion: Is the Party Over?',guest:'Marc Rowan · Apollo Global Management',duration:'52 min',color:'#10b981',desc:'The structural shift from leveraged loans to direct lending — spread compression, covenant quality, and whether the asset class can sustain top-quartile returns.'},
+    {title:'Direct Lending in a Rate-Normalization Cycle',guest:'Kipp deVeer · Ares Management',duration:'39 min',color:'#d4a843',desc:'How floating-rate private credit performs as rates decline — default outlook, refinancing risk, and the opportunity in distressed credits entering 2027.'},
+    {title:'Infrastructure Credit: The $500B Opportunity',guest:'Raj Rao · BlackRock Infrastructure',duration:'45 min',color:'#6366f1',desc:'Energy transition, digital infrastructure, and data centers as credit investment — yield premium vs corporate bonds, covenant structure, and LP demand.'},
+  ],
+  spacex:[
+    {title:'SpaceX IPO: Valuing the Most Important Company on Earth',guest:'Gwynne Shotwell · SpaceX (President)',duration:'61 min',color:'#f97316',desc:'The economics of reusability, Starlink\'s path to $20B revenue, and why the public market debut will redefine how investors think about deep-tech companies.'},
+    {title:'Pre-IPO Access: How Institutional Investors Are Positioning',guest:'Chris Sacca · Lowercarbon Capital',duration:'43 min',color:'#6366f1',desc:'The mechanics of secondary market SpaceX exposure, tender offer dynamics, and how LP agreements work for pre-IPO stakes at scale.'},
+    {title:'Space Economy 2030: The Investment Thesis Beyond SpaceX',guest:'Tess Hatch · Bessemer Venture Partners',duration:'37 min',color:'#d4a843',desc:'Satellite internet, on-orbit manufacturing, lunar logistics — the next layer of the space economy and how institutional capital is being allocated.'},
+  ],
+};
+
+// ── SIMULATION SCRIPTS ──────────────────────────────────────────────────
+const SIM_SCRIPTS = [
+  {chId:'ai', chColor:'#6366f1', asker:'SC', askerName:'Sarah Chen', askerColor:'#d4a843',
+   q:'Our quant team wants to deploy an LLM-based earnings call sentiment model. It\'s back-tested at +40bps alpha annually. How do we evaluate whether to allocate real capital to it?',
+   hint:'Key questions: out-of-sample test period, training data cutoff vs live deployment lag, factor loading vs existing alpha sources, capacity constraints.',
+   model:'The back-test is promising but I\'d want three things: an out-of-sample test on at least 3 years of data the model never saw; factor decomposition to ensure it\'s not just repackaging quality or momentum we already own; and a realistic capacity estimate — NLP sentiment signals decay fast at scale. Start with a small live allocation and validate live Sharpe against back-tested before scaling.'},
+  {chId:'ai', chColor:'#6366f1', asker:'DF', askerName:'Diana Foster', askerColor:'#22d3ee',
+   q:'The AI trading platform vendor is asking for a $2.4M annual contract with a 3-year lock-in. What\'s the right evaluation framework before we commit?',
+   hint:'ROI must exceed 3-year cost = $7.2M. Consider: current alpha leakage, regulatory/model explainability risk, switching costs, vendor concentration risk.',
+   model:'$7.2M over 3 years is the hurdle. Build the case from two directions: measurable cost savings (analyst time, data licensing consolidation = ~$3.9M/yr) and attributable alpha improvement. I\'d also want legal to review the model explainability provisions — the SEC\'s new AI-in-trading rules require audit trails. If the vendor can\'t demonstrate compliant explainability, the regulatory risk could exceed the contract cost.'},
+  {chId:'crypto', chColor:'#f59e0b', asker:'JP', askerName:'James Park', askerColor:'#10b981',
+   q:'Three counterparties have proposed settling institutional trades on-chain using tokenized Treasuries as collateral. What\'s our exposure if we agree?',
+   hint:'Key risks: smart contract risk, custody of tokenized assets, regulatory treatment of on-chain collateral, counterparty insolvency in crypto rails vs traditional.',
+   model:'The operational efficiency is real — near-instantaneous settlement and potential 15-20bps improvement in funding costs. But I\'d want legal opinions on three things: how a bankruptcy court treats tokenized Treasury claims vs traditional repo, whether our prime broker agreements permit on-chain settlement, and a security audit of the smart contracts. Start with one counterparty at small notional and monitor for 6 months before scaling.'},
+  {chId:'crypto', chColor:'#f59e0b', asker:'MW', askerName:'Marcus Webb', askerColor:'#d4a843',
+   q:'Two of our largest LPs are asking why we have zero cryptocurrency exposure. How do we position our stance — and should that change given 2026\'s regulatory clarity?',
+   hint:'Options: (a) principled exclusion with rationale, (b) indirect exposure via public equity, (c) direct spot via approved custodians, (d) tokenized RWA as separate category.',
+   model:'The regulatory clarity argument is now real — the DAMS Act provides a custody framework we can build on. I\'d distinguish between two things in LP communication: we have principled reasons to exclude speculative crypto from core mandates, but we are evaluating tokenized real-world assets as an operational infrastructure play. That\'s a credible position that acknowledges the question without overcommitting to an asset class where our risk/return views remain cautious.'},
+  {chId:'credit', chColor:'#10b981', asker:'DF', askerName:'Diana Foster', askerColor:'#22d3ee',
+   q:'Our direct lending book yields 11.2%. Investment grade bonds yield 5.8%. The CIO wants to increase private credit allocation. How do we justify the illiquidity premium to the board?',
+   hint:'540bps spread. Illiquidity premium ~200-300bps. Remaining 240-340bps = credit risk premium. Need to quantify expected loss rate vs the carry.',
+   model:'The 540bps spread over IG decomposes as: 200-250bps illiquidity premium, 150-200bps credit risk premium, and 90-140bps complexity/origination premium. The board question is whether our expected loss rate (currently 65bps trailing 3yr) justifies the risk premium. Net of expected losses we\'re earning ~475bps over IG — present it exactly that way. It\'s a compelling risk-adjusted case.'},
+  {chId:'credit', chColor:'#10b981', asker:'SC', askerName:'Sarah Chen', askerColor:'#6366f1',
+   q:'Two borrowers in our direct lending portfolio have requested covenant waivers — one on leverage tests, the other on the interest coverage cure period. How do we evaluate these?',
+   hint:'Covenant waiver = opportunity for re-pricing (fee + spread). Evaluate: borrower quality, market alternatives, relationship, sector stress. Waivers create precedent.',
+   model:'Covenant waivers are a negotiation, not a favor. For the leverage test waiver, I\'d want a 50-75bps spread increase, a fee, and enhanced reporting requirements for 12 months. For the interest coverage cure extension — is this a temporary liquidity issue or early distress? If it\'s the latter, you want more covenant protection, not less. Get updated financials and an independent assessment before agreeing to either.'},
+  {chId:'spacex', chColor:'#f97316', asker:'SC', askerName:'Sarah Chen', askerColor:'#6366f1',
+   q:'The SpaceX tender offer values the company at $350B. Our analyst team believes fair value is $280-320B. Management is recommending we participate. How do you frame the decision?',
+   hint:'Even at $350B, consider: asymmetric upside on Starlink growth, scarcity premium for pre-IPO institutional access, portfolio construction value as uncorrelated asset.',
+   model:'At $350B we\'re paying a 10-25% premium to base case. The question is whether scarcity premium and Starlink optionality justify it. Starlink alone at $20B revenue and a 10x multiple contributes $200B — and that doesn\'t price in Starship commercial. If this is a 3-5 year hold to IPO, I\'m comfortable paying up to 20% above base case for this position. The access risk — not being in at all — is the larger risk to manage.'},
+  {chId:'spacex', chColor:'#f97316', asker:'RT', askerName:'Rachel Torres', askerColor:'#f97316',
+   q:'A family office LP is asking to co-invest in the SpaceX position alongside MMM. What are the structural and relationship considerations?',
+   hint:'Co-invest benefits: deepen LP relationship, larger check size possible. Risks: co-invest documentation, LP conflicts if terms differ, concentration in single name.',
+   model:'Co-investment is a strong relationship deepener — it aligns incentives and gives us a reason for regular strategy reviews. Structural requirements: side-letter documentation, pro-rata participation rights, and clarity on management fee treatment (typically 0% management, reduced carry for co-investors). The one risk: if the IPO timeline extends or valuation disappoints, co-invest LPs remember. Make sure the LP has a 5-year horizon before we offer access.'},
+];
+
+// ── STAKES DATA ──────────────────────────────────────────────────────────
+const STAKES = [
+  {chId:'ai',chIcon:'◈',chColor:'#6366f1',chName:'AI in Finance',
+   decision:'Approve $2.4M/yr AI trading platform deployment across all investment strategies',
+   stakes:{
+     marcus:{impact:3,text:'Sets MMM\'s market positioning as an AI-native fund manager. Upside: competitive differentiation and cost efficiency. Risk: if the platform underperforms, it\'s a public narrative liability at board level.'},
+     sarah:{impact:5,text:'Your team owns the AI stack going forward. Upside: removes research bottlenecks and can scale without headcount. Downside: 18-month implementation with live trading exposure during transition — your performance record is on the line.'},
+     diana:{impact:4,text:'$7.2M over 3 years against $3.9M in projected annual savings = negative ROI unless alpha generation justifies the delta. Requires a signed performance benchmark clause before approval — this is a CFO must-have.'},
+     james:{impact:4,text:'Your equity signals are the primary input to the AI model. If factor loadings overlap with your existing alpha, there\'s attribution conflict and potentially redundant risk exposure that makes your sleeve look less differentiated.'},
+     rachel:{impact:2,text:'LPs increasingly ask about AI capabilities. This is a competitive narrative asset. Minimal direct mandate impact, but a strong talking point in the next 5 RFP processes when LP evaluators ask about AI strategy.'},
+   }},
+  {chId:'crypto',chIcon:'⬡',chColor:'#f59e0b',chName:'Digital Assets & Cryptography',
+   decision:'Accept on-chain settlement using tokenized Treasuries with 3 counterparties',
+   stakes:{
+     marcus:{impact:2,text:'Operational modernization signal. Minimal P&L impact at initial scale. Risk: if a smart contract vulnerability materializes, MMM is in headline news — ensure legal sign-off before any external announcement.'},
+     sarah:{impact:3,text:'Potential 15-20bps funding cost improvement on the repo book if scaled. Introduces operational complexity during implementation. Start small, validate live performance before scaling to any material notional.'},
+     diana:{impact:5,text:'CRITICAL: Regulatory treatment of tokenized collateral under MMM\'s ISDA agreements is unresolved. A counterparty insolvency event on crypto rails could create a $50-200M claims dispute. Legal and compliance must sign off before any commitment.'},
+     james:{impact:1,text:'No direct equity portfolio impact. Some public equity names (Coinbase, crypto custodians) may benefit from institutional adoption signals — monitor for alpha opportunity in the digital asset infrastructure space.'},
+     rachel:{impact:2,text:'One LP has specifically asked about blockchain capabilities. This is a low-stakes relationship signal. Do not over-market until the operational framework is validated and legal has signed off.'},
+   }},
+  {chId:'credit',chIcon:'◎',chColor:'#10b981',chName:'Private Credit Expansion',
+   decision:'Increase private credit allocation from 8% to 14% of AUM ($1.1B incremental)',
+   stakes:{
+     marcus:{impact:3,text:'Captures the illiquidity premium while rates normalize. Strong board narrative: proactive positioning ahead of lending market tightening. Risk: if default rates spike above 3%, this is a visible call you own at a record allocation level.'},
+     sarah:{impact:5,text:'$1.1B of new origination capacity requires 3 new credit analysts and a dedicated sourcing network. Significant operational lift before the first dollar is deployed — and your performance record is tied to credit selection quality.'},
+     diana:{impact:4,text:'Liquidity profile changes meaningfully: 14% of AUM locked 5-7 years. DSCR covenant management adds CFO oversight burden. Recommend a separate liquidity reserve policy for the credit book as a condition of approval.'},
+     james:{impact:2,text:'Private credit expansion reduces the equity budget for redeployment. If credit absorbs $1.1B, equity rebalancing flexibility decreases by ~6% of total AUM — constraining the sector rotation you\'ve been planning.'},
+     rachel:{impact:4,text:'67% of your LP book has expressed interest in private credit co-investment rights. Three LPs would increase their AUM allocation if private credit access is confirmed. This is a mandate retention and new business tool.'},
+   }},
+  {chId:'spacex',chIcon:'◆',chColor:'#f97316',chName:'SpaceX IPO Positioning',
+   decision:'Commit $150M to SpaceX at $350B valuation via tender offer (window: 14 days)',
+   stakes:{
+     marcus:{impact:4,text:'The most visible investment decision you\'ll make this year. A SpaceX position at IPO will define MMM\'s brand as a growth-oriented institutional manager. Extraordinary upside; any underperformance requires a board narrative on why we paid the premium.'},
+     sarah:{impact:5,text:'Concentration risk: $150M = 0.8% of AUM in a single illiquid pre-IPO name. You need to defend portfolio construction rationale and ensure no LP mandate concentration limits are breached. Model the IPO timeline sensitivity — a 3-year delay changes your IRR materially.'},
+     diana:{impact:4,text:'Illiquid $150M position with no mark-to-market until IPO. Quarterly LP reports will show a frozen carrying value. Prepare a formal ASC 820 Level 3 valuation methodology for the board — you\'ll be asked to justify the carrying value every quarter until listing.'},
+     james:{impact:2,text:'No direct equity book interaction. SpaceX IPO comparable public names (satellite, defense tech, launch logistics) may see multiple expansion in anticipation — worth a small public equity position in the ecosystem ahead of the event.'},
+     rachel:{impact:5,text:'The single most powerful LP conversation you\'ll have in 2026. SpaceX access is scarce and coveted. This creates a tier-1 relationship deepening opportunity with your 8 largest LPs — and a compelling new business story for the next 12 months.'},
+   }},
+];
+
+const MEMBERS = {
+  marcus:{id:'marcus',name:'Marcus Webb',title:'Chief Executive Officer',initials:'MW',color:'#d4a843',colorDim:'rgba(212,168,67,0.12)',exp:[5,2,3],depth:'summary',depthLabel:'Strategic Overview',depthPct:'40%',
+    greeting:"Good morning, Marcus. I've prepared your brief with a strategic lens across today's four agenda items — AI, Digital Assets, Private Credit, and SpaceX. Key decisions and leadership implications are foregrounded.",
+    suggestions:{
+      0:["What's the competitive risk if we don't invest in AI now?","What decision do I need to make on AI today?","How are peers deploying AI and where do we stand?"],
+      1:["How should we position on digital assets with LPs?","What's the reputational risk of on-chain settlement?","Two LPs are asking about crypto — what do I say?"],
+      2:["What's the strategic case for expanding private credit?","What decision is needed on private credit today?","What's our risk if default rates spike above 3%?"],
+      3:["What's the SpaceX investment thesis in one sentence?","What do I need to decide on SpaceX and by when?","How does SpaceX affect our brand with LP relationships?"]
+    }
+  },
+  sarah:{id:'sarah',name:'Sarah Chen',title:'Chief Investment Officer',initials:'SC',color:'#6366f1',colorDim:'rgba(99,102,241,0.12)',exp:[4,5,5],depth:'deep',depthLabel:'Full Technical Depth',depthPct:'100%',
+    greeting:"Sarah — your brief is fully loaded with technical depth across all four chapters. AI model attribution, tokenized RWA analysis, private credit underwriting, and SpaceX sum-of-parts model are pre-expanded.",
+    suggestions:{
+      0:["Break down the AI alpha by model and factor loading","What's the crowding risk on our sentiment signals?","How do we validate the AI model before going live?"],
+      1:["What's the portfolio construction case for tokenized Treasuries?","Model the smart contract risk on $50M pilot","What security audit requirements should we mandate?"],
+      2:["Walk me through the private credit expansion pipeline","What's the DSCR distribution across the current book?","Model the bear case default scenario at 5% rate"],
+      3:["Walk me through the SpaceX sum-of-parts valuation model","What's the IRR sensitivity to a 2-year IPO delay?","How does $150M fit into portfolio concentration limits?"]
+    }
+  },
+  diana:{id:'diana',name:'Diana Foster',title:'Chief Financial Officer',initials:'DF',color:'#22d3ee',colorDim:'rgba(34,211,238,0.10)',exp:[3,4,4],depth:'standard',depthLabel:'Risk & Financial Lens',depthPct:'65%',
+    greeting:"Diana, your brief is framed through a risk and financial lens. ROI models, regulatory compliance flags, and liquidity impacts are highlighted throughout all four chapters.",
+    suggestions:{
+      0:["What's the 3-year ROI model on the AI platform?","Are there regulatory compliance risks with AI trading?","What performance benchmark clause do I need in the contract?"],
+      1:["What's our legal exposure before any on-chain activity?","What ISDA amendment is required for tokenized settlement?","What's the tax treatment and do we have a written opinion?"],
+      2:["What's the liquidity impact of expanding private credit to 14%?","Model the P&L under a 5% default scenario","What reserve requirements do I need to approve?"],
+      3:["What's the ASC 820 valuation framework for the SpaceX position?","How do we report an illiquid pre-IPO position quarterly?","What's the maximum financial exposure in the bear case?"]
+    }
+  },
+  james:{id:'james',name:'James Park',title:'Head of Equities',initials:'JP',color:'#10b981',colorDim:'rgba(16,185,129,0.10)',exp:[2,5,5],depth:'deep',depthLabel:'Market & Technical Depth',depthPct:'95%',
+    greeting:"James — technical and market structure content is prioritized. AI signal factor analysis, digital asset public equity reads, private credit/equity interaction, and SpaceX public comparables are foregrounded.",
+    suggestions:{
+      0:["Is the AI alpha truly orthogonal to my existing factor exposures?","Which AI signals are most at risk of crowding in the next 18 months?","What's the best use case for AI in options pricing?"],
+      1:["What public equity names benefit from institutional crypto adoption?","Is Coinbase a re-rating candidate at current levels?","What disintermediation risk do our custody holdings face?"],
+      2:["How does the private credit expansion affect my equity deployment budget?","What does private credit deal flow signal for public equity timing?","What's the joint drawdown risk if credit and equity both sell off?"],
+      3:["What are the best public market comparables for SpaceX?","How do I position the equity book ahead of the SpaceX IPO event?","Which sectors see multiple expansion from the SpaceX listing?"]
+    }
+  },
+  rachel:{id:'rachel',name:'Rachel Torres',title:'MD, Client Relations',initials:'RT',color:'#f97316',colorDim:'rgba(249,115,22,0.10)',exp:[3,2,3],depth:'summary',depthLabel:'Client & Narrative Lens',depthPct:'35%',
+    greeting:"Rachel, I've framed your brief around LP communication and relationship opportunities. Each chapter highlights talking points, co-investment angles, and the conversations to prioritize this week.",
+    suggestions:{
+      0:["How do I explain AI capabilities without overpromising?","Which LPs are specifically asking about AI?","What's the right narrative on AI for our next RFP?"],
+      1:["What's the talking point when LPs ask why we have zero crypto?","Which LPs should I target for digital asset conversations?","How do I avoid being labelled 'crypto-negative'?"],
+      2:["Which three LPs should I call about private credit co-investment?","What's the client narrative on yield vs default risk?","How do I communicate 11.2% yield responsibly?"],
+      3:["How do I use SpaceX to deepen Tier-1 LP relationships?","Which LPs should I offer co-investment to and in what order?","What's the communication plan once the tender window closes?"]
+    }
+  }
+};
+
+const CHAPTERS = [
+  {id:'ai',index:0,title:'AI in Finance',short:'AI in Finance',icon:'◈',color:'#6366f1',colorDim:'rgba(99,102,241,0.12)',colorBorder:'rgba(99,102,241,0.25)',
+    readTime:{marcus:4,sarah:9,diana:5,james:7,rachel:3},
+    memberDepth:{marcus:'40%',sarah:'100%',diana:'60%',james:'85%',rachel:'30%'},
+    learn:[
+      {tag:'Technology',color:'#6366f1',title:'Large Language Models in Finance',body:'LLMs process earnings calls, filings, and news at scale — extracting sentiment signals in milliseconds that would take analysts weeks. Key: distinguishing genuine information edge from noise that others\' models have already priced in.'},
+      {tag:'Concept',color:'#d4a843',title:'Alpha Decay in AI Strategies',body:'AI-generated alpha decays as competitors adopt similar models. The edge window for a new sentiment signal averages 18-36 months before crowding eliminates the premium. First-mover advantage and proprietary data are the only durable moats.'},
+      {tag:'Context',color:'#10b981',title:'Regulatory Explainability Requirements',body:'The SEC\'s 2025 AI-in-Finance guidance requires managers to document and explain AI-driven trading decisions. Black-box models now carry regulatory risk. Explainability architecture is a compliance requirement, not just a technical nicety.'},
+    ],
+    metrics:[
+      {label:'AI-Assisted AUM',value:34,suffix:'%',delta:'of portfolio uses AI signals',trend:'up'},
+      {label:'Alpha from AI',value:42,suffix:'bps',delta:'attributed to AI models in Q2',trend:'up'},
+      {label:'Process Savings',value:2.1,suffix:'M',delta:'annual analyst time saved',trend:'up'},
+      {label:'Model Accuracy',value:71,suffix:'%',delta:'sentiment signal hit rate',trend:'neutral'},
+    ],
+    content:{
+      marcus:{
+        headline:'AI Is Now a Competitive Infrastructure Decision',
+        deck:'Every major asset manager is deploying AI. The question isn\'t whether to — it\'s how fast and how deep. Today\'s decision determines MMM\'s competitive position for the next decade.',
+        framing:'Framed for Marcus Webb, CEO — Strategic lens on AI adoption as infrastructure and competitive moat.',
+        beats:[
+          {type:'intro',text:'The AI transformation of asset management is no longer emerging — it\'s here. Bridgewater, Two Sigma, and Man Group have all reported double-digit efficiency gains from AI integration in research and trading. MMM\'s current position: 34% of portfolio management uses AI-assisted signals. The industry median is moving to 60%+ by 2027.'},
+          {type:'insight',label:'Strategic Imperative',text:'AI in finance is not primarily a technology decision — it\'s a talent and infrastructure decision. The managers who deploy AI effectively will attract the quantitative talent that drives the next generation of alpha. The competitive moat is the flywheel: AI → better performance → better talent → more proprietary data → better AI.'},
+          {type:'action',label:'Decision Required',text:'The investment team is recommending a $2.4M annual platform investment extending AI coverage to 80%+ of portfolio operations within 18 months. This requires leadership approval and a dedicated change management plan.'},
+          {type:'risk',label:'Risk Flag',text:'Moving too slowly is the larger risk. However, over-relying on unvalidated AI signals in live trading introduces model risk. The implementation plan must include a shadow-trading validation period before any AI model goes live with real capital.'},
+        ]
+      },
+      sarah:{
+        headline:'AI Alpha: Factor Attribution & Model Validation Framework',
+        deck:'42bps of AI-attributed alpha in Q2. Here\'s the decomposition, the validation methodology, and the expansion case.',
+        framing:'Framed for Sarah Chen, CIO — Full technical depth on AI strategies, model performance, and portfolio integration.',
+        beats:[
+          {type:'intro',text:'Current AI stack: 3 deployed models in production. (1) Earnings call sentiment NLP — 71% directional accuracy, contributing +18bps. (2) 10-K/10-Q risk language classifier — flags regulatory exposure 45 days before market reaction, +16bps. (3) Macro regime detection model — classifies market state from 47 indicators, +8bps. Total: +42bps Q2 alpha, all out-of-sample validated.'},
+          {type:'insight',label:'Factor Attribution',text:'AI model alpha decomposes: 60% genuine information edge (earnings call insights markets haven\'t priced), 25% timing premium (fast processing creates first-mover on public information), 15% execution optimization (AI-directed order routing reduces implementation shortfall by 3-5bps per trade). The information edge component is most defensible; timing premium will compress as more models adopt similar approaches.'},
+          {type:'risk',label:'Model Risk',text:'Model drift is the primary ongoing risk. All three models are retrained monthly on new data, but backtest/live divergence can signal overfitting. Current monitoring: weekly Sharpe comparison (backtest vs live). If live Sharpe drops below 70% of backtest for 30 consecutive days, model is suspended pending review.'},
+          {type:'action',label:'CIO Recommendation',text:'Approve the platform expansion. Deploy the infrastructure to enable the credit risk and options volatility surface models — two new strategies in development that require the new compute infrastructure. Expected additional alpha: 20-30bps annually when both go live.'},
+        ]
+      },
+      diana:{
+        headline:'AI Investment: Cost, ROI, and Compliance Framework',
+        deck:'$2.4M annual platform cost against measurable savings and alpha. Full ROI model and regulatory compliance assessment.',
+        framing:'Framed for Diana Foster, CFO — Financial ROI and regulatory risk framing of AI investment.',
+        beats:[
+          {type:'intro',text:'AI platform investment: $2.4M annual contract (3-year term = $7.2M total commitment). Against this, three measurable return streams: (1) $2.1M annual analyst time savings. (2) $1.8M annual data licensing consolidation (platform replaces 4 separate subscriptions). (3) Alpha-attributed revenue: 42bps on $6B AI-eligible AUM = $2.52M incremental return.'},
+          {type:'insight',label:'ROI Analysis',text:'Year 1: -$0.51M net (cost front-loaded, savings phase-in). Year 2: +$1.62M net. Year 3: +$2.52M net. 3-year NPV: +$2.9M at 10% hurdle. IRR: 34%. The ROI is compelling; the key risk is the 18-month implementation period where costs are incurred before full savings materialize.'},
+          {type:'risk',label:'Regulatory Note',text:'SEC AI-in-Finance guidance (2025) requires documented model governance: training data lineage, decision audit trails, and quarterly model review sign-off by a qualified person. The vendor contract must include compliance-ready API documentation. Flag if the explainability provisions are insufficient before signing.'},
+          {type:'action',label:'CFO Recommendation',text:'Approve the investment with three conditions: performance benchmark clause (minimum 20bps annual alpha or cost reimbursement triggers), compliance documentation addendum, and quarterly ROI review against the 3-year model. Do not approve without the performance clause.'},
+        ]
+      },
+      james:{
+        headline:'AI Signals & Market Microstructure Implications',
+        deck:'42bps of AI alpha in Q2. Here\'s the market microstructure impact, factor loading analysis, and the signals that are and aren\'t working.',
+        framing:'Framed for James Park, Head of Equities — Technical and market structure depth on AI strategy performance.',
+        beats:[
+          {type:'intro',text:'AI models are generating meaningful equity alpha, but the signal landscape is evolving rapidly. Earnings call NLP (18bps) works because subtle language changes in management tone carry information that markets discount with a 2-5 day lag. This lag is compressing as more managers deploy similar models — estimated remaining edge window: 18-24 months at current adoption rates.'},
+          {type:'insight',label:'Factor Interaction',text:'Key risk: the AI sentiment model has a 0.62 correlation with the Quality factor in high-volatility regimes. This means the 42bps of AI alpha may be partially double-counting quality exposure we already hold. Preliminary orthogonalization result: net incremental AI alpha after factor adjustment = 28-35bps. Still compelling, but the headline number needs scrutiny.'},
+          {type:'risk',label:'Crowding Signal',text:'In the tech sector, AI models across the industry are converging on similar signals from the same earnings call transcripts. When 15+ managers are trained on S&P 500 Q2 earnings calls simultaneously, the signal becomes self-defeating. Recommend adding alternative data sources (satellite, credit card data) to differentiate our input set.'},
+          {type:'action',label:'Recommendation',text:'Approve platform expansion specifically for the options volatility surface model. This is the highest-differentiation opportunity — few managers are applying AI to options pricing, the data is proprietary, and the factor exposure is genuinely uncorrelated with our existing book.'},
+        ]
+      },
+      rachel:{
+        headline:'AI as a Client Narrative Asset',
+        deck:'LPs are asking about AI. Here\'s the story to tell — and what it means for mandates and competitive positioning.',
+        framing:'Framed for Rachel Torres, MD Client Relations — Client narrative and LP communication on AI capabilities.',
+        beats:[
+          {type:'intro',text:'In the last six months, 14 of our 47 LP mandates have included AI capability questions in their annual review questionnaires — up from 3 in 2024. Institutional allocators are evaluating whether their managers have a credible AI strategy. Our current position (34% AI-assisted, 42bps attributed alpha) is above average but not yet industry-leading.'},
+          {type:'insight',label:'Talking Point',text:'"We view AI not as a replacement for investment judgment, but as an amplifier. Our models identify 300+ data points in every earnings call in the first 60 seconds of release — our analysts then apply contextual judgment that no model can replicate. The result: consistently faster and more accurate positioning around earnings events."'},
+          {type:'action',label:'Communication Plan',text:'Update the standard LP deck with an AI capabilities section before the Q3 review cycle. Include: model overview (no proprietary signal disclosure), performance attribution, and the governance framework (SEC compliance). Coordinate with Sarah\'s team to ensure the technical claims are accurate and defensible.'},
+          {type:'risk',label:'Overpromising Risk',text:'Do not position MMM as an "AI-first fund" unless the platform expansion is approved and validated. Overcommitting in LP communication before internal capabilities match creates a credibility risk if performance disappoints. Position accurately: we use AI to enhance — not replace — our investment process.'},
+        ]
+      }
+    }
+  },
+  {id:'crypto',index:1,title:'Cryptography & Digital Assets',short:'Digital Assets',icon:'⬡',color:'#f59e0b',colorDim:'rgba(245,158,11,0.10)',colorBorder:'rgba(245,158,11,0.25)',
+    readTime:{marcus:3,sarah:7,diana:6,james:5,rachel:3},
+    memberDepth:{marcus:'35%',sarah:'90%',diana:'65%',james:'70%',rachel:'25%'},
+    learn:[
+      {tag:'Technology',color:'#f59e0b',title:'Zero Knowledge Proofs in Finance',body:'ZK-proofs allow one party to prove knowledge of information (trade, identity, balance) without revealing the underlying data. Settlement privacy + regulatory compliance simultaneously — the dual use case that\'s driving $2B+ in institutional ZK infrastructure investment.'},
+      {tag:'Mechanics',color:'#6366f1',title:'Tokenized Real-World Assets (RWAs)',body:'Tokenization puts legal ownership of real assets (Treasuries, real estate, PE interests) on a blockchain ledger. The result: 24/7 settlement, fractional ownership, and programmable collateral. BlackRock\'s BUIDL fund crossed $1B in tokenized Treasuries in 2026.'},
+      {tag:'Context',color:'#10b981',title:'The DAMS Act: What Changed in 2026',body:'The Digital Asset Market Structure Act (2026) provided the first comprehensive US crypto regulatory framework: custody rules for institutional managers, stablecoin licensing, and a clear definition separating securities tokens from commodity tokens. This is what unlocked institutional access.'},
+    ],
+    metrics:[
+      {label:'Direct Exposure',value:0,suffix:'%',delta:'Current portfolio allocation',trend:'neutral'},
+      {label:'RWA Market',value:12,suffix:'B',delta:'Tokenized assets globally',trend:'up'},
+      {label:'Settlement Savings',value:18,suffix:'bps',delta:'Potential funding cost reduction',trend:'up'},
+      {label:'DAMS Clarity',value:89,suffix:'%',delta:'of asset classes now classified',trend:'up'},
+    ],
+    content:{
+      marcus:{
+        headline:'Digital Assets: From Speculation to Infrastructure',
+        deck:'The institutional crypto narrative has shifted. It\'s no longer about Bitcoin — it\'s about programmable settlement, tokenized collateral, and regulatory clarity that finally arrived in 2026.',
+        framing:'Framed for Marcus Webb, CEO — Strategic framing on digital assets as infrastructure play vs speculative exposure.',
+        beats:[
+          {type:'intro',text:'The Digital Asset Market Structure Act (2026) changed the institutional access landscape materially. Two major developments: (1) tokenized Treasuries are now legally recognized collateral under ISDA agreements, enabling on-chain repo markets; (2) digital asset custody rules are clear enough for ERISA-governed funds to participate. This is not the 2021 crypto cycle — it\'s infrastructure.'},
+          {type:'insight',label:'Strategic Position',text:'MMM\'s current digital asset exposure: zero direct. This is a defensible position — but LP questions are increasing. The more relevant question is whether we should be exploring tokenized real-world assets as an operational efficiency tool, separate from any speculative digital asset allocation.'},
+          {type:'action',label:'Decision Framework',text:'Two distinct decisions for today\'s discussion: (1) Should MMM engage in tokenized Treasury settlement as an operational upgrade? (2) Should MMM establish any direct digital asset exposure in the investment portfolio? These are separate questions with different risk profiles.'},
+          {type:'risk',label:'Risk',text:'The primary institutional risk is not market volatility — it\'s operational and regulatory risk. Smart contract vulnerabilities, custody failures, and regulatory interpretation changes create headline risk for an institutional manager. Any engagement requires a robust legal and operational framework first.'},
+        ]
+      },
+      sarah:{
+        headline:'Digital Assets: Portfolio Case & Technology Assessment',
+        deck:'Zero current exposure. Here\'s the full case for and against — tokenized RWAs, on-chain settlement efficiency, and the portfolio construction implications.',
+        framing:'Framed for Sarah Chen, CIO — Full technical and portfolio depth on digital asset landscape.',
+        beats:[
+          {type:'intro',text:'Current market opportunity assessment: (1) Tokenized Treasuries — $12B market, growing 300% YoY. BlackRock\'s BUIDL, Franklin Templeton\'s FOBXX offer institutional-grade products with SEC registration. Yield equivalent to spot Treasuries but with intraday settlement. (2) On-chain repo — 15-20bps funding cost reduction vs traditional repo on equivalent collateral. (3) Speculative digital assets — we do not see a portfolio construction case at current valuations.'},
+          {type:'insight',label:'Portfolio Construction',text:'If we establish a tokenized Treasury position: recommend treating it as a cash management tool, not an investment. Up to 5% of cash holdings in tokenized form provides funding cost optimization without directional crypto exposure. This is operationally equivalent to a money market fund, not a crypto trade.'},
+          {type:'risk',label:'Technical Risk',text:'Smart contract risk is the non-negotiable gating item. BUIDL and FOBXX both use audited, production-hardened contracts, but a fund-level custody failure would create reputational and financial exposure. Require a minimum of 3 independent security audits and $100M+ in vendor insurance before any commitment.'},
+          {type:'action',label:'CIO Recommendation',text:'Approve a 90-day evaluation of tokenized Treasury cash management (up to $50M pilot). Do not approve any speculative digital asset allocation. Establish a formal digital assets working group with legal, compliance, and operations before the pilot launch.'},
+        ]
+      },
+      diana:{
+        headline:'Digital Assets: Financial Risk & Regulatory Compliance',
+        deck:'$0 current exposure. Evaluating on-chain settlement. Here\'s the risk quantification, ISDA amendment requirements, and compliance framework.',
+        framing:'Framed for Diana Foster, CFO — Risk quantification and regulatory compliance framing on digital assets.',
+        beats:[
+          {type:'intro',text:'Regulatory framework post-DAMS Act: tokenized securities are regulated equivalently to their traditional counterparts under SEC/CFTC jurisdiction. ISDA released updated definitions for on-chain collateral in March 2026 — our existing master agreements need amendment. Legal estimates: 60-90 day process, $150K in legal fees.'},
+          {type:'insight',label:'Financial Risk',text:'Three financial risk categories: (1) Smart contract risk — for BUIDL-grade contracts, estimated annual loss probability: <0.1%. On $50M pilot, expected annual loss: <$50K. (2) Counterparty insolvency on crypto rails — mitigated by using SEC-registered tokenized products. (3) Regulatory reversal risk — DAMS Act has bipartisan support; probability of material reversal: <10%.'},
+          {type:'action',label:'CFO Recommendation',text:'ISDA master agreement amendment required before any on-chain activity. Budget $150K for legal. For the $50M tokenized Treasury pilot: establish a separate custody account, daily NAV reconciliation, and a kill-switch procedure to revert to traditional settlement within 24 hours if required.'},
+          {type:'risk',label:'Tax Note',text:'IRS treatment of tokenized asset income may differ from traditional instrument income — specifically around cost basis tracking if positions are transferred on-chain. Tax counsel must opine before implementation. Do not proceed without a written tax opinion on file.'},
+        ]
+      },
+      james:{
+        headline:'Digital Assets: Market Microstructure & Public Equity Opportunities',
+        deck:'The digital asset infrastructure buildout is creating alpha opportunities in public equities. Here\'s the market structure analysis.',
+        framing:'Framed for James Park, Head of Equities — Public equity implications of digital asset ecosystem growth.',
+        beats:[
+          {type:'intro',text:'The most interesting near-term opportunity from a pure equity perspective: the digital asset infrastructure buildout is creating significant alpha opportunities in public equity analogues. Crypto custodians (Coinbase), payment rails (Visa, Mastercard on-chain integration), and tokenization platform providers are all worth examining as DAMS Act clarity drives institutional adoption.'},
+          {type:'insight',label:'Public Equity Opportunity',text:'Specific names benefiting from institutional digital asset adoption: (1) Coinbase: institutional custody revenue growing 200% YoY post-DAMS, currently trading at 18x forward earnings vs fintech comps at 22x — potential re-rating candidate. (2) Custody banks with blockchain settlement infrastructure: benefiting from institutional settlement volume growth. (3) Semiconductor names: if on-chain computing scales, GPU demand has a second tailwind beyond AI.'},
+          {type:'risk',label:'Disintermediation Risk',text:'On-chain settlement could reduce traditional settlement intermediary revenues over a 5-10yr horizon. Banks with large custody and securities settlement businesses face structural headwinds. Our current holdings in this space are worth stress testing under an "on-chain settlement becomes standard" scenario.'},
+          {type:'action',label:'Recommendation',text:'Add Coinbase to the watch list at current levels — the institutional custody re-rating thesis is tangible and the regulatory clarity tailwind is real. Size: 25-50bps initial position. This is a sentiment trade on institutional crypto adoption, not a fundamental long.'},
+        ]
+      },
+      rachel:{
+        headline:'Digital Assets: What LPs Are Asking and How to Respond',
+        deck:'LP questions on crypto are increasing. Here\'s the narrative framework and which conversations need a response this week.',
+        framing:'Framed for Rachel Torres, MD Client Relations — LP communication strategy on digital assets.',
+        beats:[
+          {type:'intro',text:'12 LP mandates raised digital asset questions in the last 6 months — mostly from family offices and endowments. The questions break into two categories: (1) "Why don\'t you have any crypto exposure?" and (2) "What are you doing about blockchain-based settlement efficiency?" These require different answers.'},
+          {type:'insight',label:'Talking Point',text:'"We distinguish between speculative digital assets and digital asset infrastructure. We\'re actively evaluating tokenized Treasury settlement as a cash management efficiency tool — the same way we\'d evaluate any operational upgrade. Direct speculative crypto exposure is not in our mandate framework, and we don\'t see a portfolio construction case at current valuations."'},
+          {type:'action',label:'Targeted LP Work',text:'Two LPs have specifically asked about co-investment in digital asset strategies. Do not commit to anything before the CIO\'s formal evaluation is complete. Respond with: "We\'re completing our technical due diligence — I\'ll have a more detailed answer for you at the Q3 review."'},
+          {type:'risk',label:'Communication Risk',text:'Do not position MMM as "crypto-negative" — the institutional landscape has shifted and that label creates an image problem with tech-forward LPs. Position as "infrastructure-focused, valuation-disciplined" on digital assets. That language works across the full LP spectrum from conservative pension funds to progressive endowments.'},
+        ]
+      }
+    }
+  },
+  {id:'credit',index:2,title:'Private Credit Expansion',short:'Private Credit',icon:'◎',color:'#10b981',colorDim:'rgba(16,185,129,0.10)',colorBorder:'rgba(16,185,129,0.25)',
+    readTime:{marcus:4,sarah:9,diana:7,james:3,rachel:5},
+    memberDepth:{marcus:'45%',sarah:'100%',diana:'70%',james:'40%',rachel:'50%'},
+    learn:[
+      {tag:'Asset Class',color:'#10b981',title:'Direct Lending vs Leveraged Loans',body:'Direct lending is bilateral: the fund negotiates directly with the borrower, sets its own covenants, and holds the loan to maturity. Leveraged loans are syndicated — broadly distributed, weaker covenants, traded in secondary markets. Direct lending earns a 150-200bps premium for illiquidity and negotiating leverage.'},
+      {tag:'Metric',color:'#d4a843',title:'Understanding DSCR and Covenant Quality',body:'Debt Service Coverage Ratio (DSCR) measures how many times over a borrower\'s cash flow covers its debt payments. DSCR > 1.5x is conservative; < 1.1x is distressed territory. Covenant-lite loans (no DSCR test) have proliferated to 85%+ of the leveraged loan market — a systemic risk that direct lenders avoid.'},
+      {tag:'Context',color:'#6366f1',title:'The Private Credit Mega-Cycle',body:'Private credit has grown from $200B (2010) to $2.1T (2026). The growth driver: bank regulation (Basel III/IV capital requirements) pushed corporate lending off bank balance sheets. Asset managers filled the gap. The risk: the asset class has never been tested through a full credit cycle at this scale.'},
+    ],
+    metrics:[
+      {label:'Portfolio Yield',value:11.2,suffix:'%',delta:'Gross yield, direct lending',trend:'up'},
+      {label:'Default Rate',value:0.65,suffix:'%',delta:'Trailing 3yr, vs 2.1% market',trend:'up'},
+      {label:'Current Alloc.',value:8,suffix:'%',delta:'of AUM in private credit',trend:'neutral'},
+      {label:'Target Alloc.',value:14,suffix:'%',delta:'Proposed (+$1.1B incremental)',trend:'up'},
+    ],
+    content:{
+      marcus:{
+        headline:'Private Credit: The Carry Trade of Our Generation',
+        deck:'11.2% gross yield. 0.65% default rate. The risk-adjusted case for expanding our private credit book is compelling — and the window to lock in current spread levels is closing.',
+        framing:'Framed for Marcus Webb, CEO — Strategic framing of private credit expansion as a cycle-timing decision.',
+        beats:[
+          {type:'intro',text:'Private credit is generating 11.2% gross yield against a 0.65% trailing default rate — a net carry of over 10% at current performance levels. With rates normalizing, the window for securing new floating-rate direct lending commitments at current spreads is narrowing. The CIO is recommending an increase from 8% to 14% of AUM before the market compresses further.'},
+          {type:'insight',label:'Strategic Window',text:'The private credit expansion opportunity is rate-cycle-dependent. As the Fed cuts rates, floating-rate direct lending yields compress and entry IRRs decrease. The highest-quality borrowers are currently accepting 475bps spreads over base rate — that spread will contract 75-100bps by end-2027 as competition increases. Committing now locks in the current vintage economics.'},
+          {type:'action',label:'Decision Required',text:'Approval to deploy $1.1B incrementally over 18 months into direct lending and infrastructure credit. Sarah\'s team has a pipeline of 12 approved credits already in underwriting. This is an allocation commitment — deployment occurs credit-by-credit as the team underwrites each loan.'},
+          {type:'risk',label:'Cycle Risk',text:'Private credit has never been stress-tested at $2T+ scale. If unemployment rises above 6% and corporate earnings decline 20%+, default rates could spike to 3-5% — significantly above our trailing average. The allocation increase should be paired with explicit portfolio-level stress testing.'},
+        ]
+      },
+      sarah:{
+        headline:'Private Credit: Portfolio Construction & Underwriting Framework',
+        deck:'$1.1B expansion over 18 months. Deal pipeline, underwriting standards, sector allocation, and expected return analysis.',
+        framing:'Framed for Sarah Chen, CIO — Full technical depth on credit portfolio construction and deal-level analysis.',
+        beats:[
+          {type:'intro',text:'Current private credit portfolio: $1.47B across 34 loans (avg ticket: $43M), 8% of AUM. Sector allocation: Tech/SaaS (28%), Healthcare services (22%), Industrial (19%), Consumer (16%), Real Estate Credit (15%). Average DSCR: 2.1x. Average interest coverage: 3.4x. All loans have maintenance covenants vs the covenant-lite market standard.'},
+          {type:'insight',label:'Expansion Pipeline',text:'12 credits in active underwriting for the proposed expansion: 4 in tech-enabled services (avg $85M ticket, 475bps spread, 2.3x DSCR), 3 in infrastructure credit (avg $120M, 425bps, 2.8x), 5 in healthcare (avg $65M, 500bps, 2.1x). Combined: $1.06B. Average net IRR on pipeline: 10.4% after management fees and expected losses.'},
+          {type:'risk',label:'Concentration Risk',text:'Infrastructure credit: 3 proposed deals in digital connectivity represent 31% of the expansion target. If this sector experiences adverse regulatory changes, the concentration could amplify losses. Cap individual sector exposure at 25% of the credit book before final pipeline approval.'},
+          {type:'action',label:'CIO Recommendation',text:'Approve the expansion with two conditions: (1) sector cap of 25% maximum per sector in new deployment; (2) enhanced monitoring trigger — any loan dropping below 1.5x DSCR triggers a formal credit review within 30 days. Both are standard at leading credit managers.'},
+        ]
+      },
+      diana:{
+        headline:'Private Credit: Liquidity, Risk Budget & Financial Planning',
+        deck:'$1.1B deployment over 18 months. Liquidity model, capital schedule, risk budget impact, and CFO sign-off requirements.',
+        framing:'Framed for Diana Foster, CFO — Liquidity and risk budget analysis of private credit expansion.',
+        beats:[
+          {type:'intro',text:'Liquidity impact: $1.1B committed over 18 months represents 6% of current AUM becoming illiquid (5-7 year average term). Post-expansion, total illiquid asset allocation: approximately 22% of AUM. This remains within the 30% illiquidity cap in our investment policy statement.'},
+          {type:'insight',label:'Revenue Impact',text:'At 11.2% gross yield on $1.1B incremental: $123M annual interest income against management fees of ~$11M (1% fee on deployed capital). Net revenue contribution: ~$112M. Even at stressed 8% yield (accounting for defaults and rate compression): $88M net. The revenue case is strong under all scenarios.'},
+          {type:'risk',label:'Liquidity Stress',text:'Bear scenario: 5% default rate on the expanded book = $55M in expected losses. Combined with 15% decline in public market valuations: liquidity ratio could reach 11% — above the 6% covenant floor. Risk is manageable unless defaults cluster in the same quarter as an LP redemption event.'},
+          {type:'action',label:'CFO Recommendation',text:'Approve with a $200M liquidity reserve earmarked for the credit expansion period. Do not deploy the full $1.1B without maintaining this reserve. Recommend adding a $300M revolving credit facility as additional insurance — cost: approximately $900K annually in facility fees.'},
+        ]
+      },
+      james:{
+        headline:'Private Credit & Public Market Dynamics',
+        deck:'Private credit at 14% of AUM changes the public equity budget. Here\'s the market interaction and reallocation implications.',
+        framing:'Framed for James Park, Head of Equities — Public/private interaction and equity portfolio implications.',
+        beats:[
+          {type:'intro',text:'The private credit expansion ($1.1B) reduces the capital available for public equity deployment by approximately 6% of total AUM. In practice: the equity book rebalancing flexibility for Q3-Q4 is reduced. The sector rotation playbook (increasing rate-sensitives, adding small cap) needs to be sized within the updated capital budget.'},
+          {type:'insight',label:'Public/Private Signal',text:'Private credit deal flow is a leading indicator for public equity opportunities. When our credit team is seeing 475bps spreads on BB-rated corporate credits, credit markets are pricing risk conservatively. This is typically a good entry signal for public equity — credit leads equity by 30-60 days. Current credit conditions are constructive for equity.'},
+          {type:'risk',label:'Correlation Risk',text:'In a credit stress scenario, private credit losses and public equity losses tend to be correlated. A portfolio with 14% private credit and 35% equity has meaningful simultaneous drawdown risk. The stress test should model the joint distribution — not treat them as independent asset classes.'},
+          {type:'action',label:'Recommendation',text:'If the private credit expansion is approved, reduce the equity overweight from 37% to 34% to maintain a balanced risk budget. The credit book\'s income component partially replaces the equity book\'s return contribution — this is portfolio construction, not market timing.'},
+        ]
+      },
+      rachel:{
+        headline:'Private Credit: LP Communication & Co-Investment Opportunity',
+        deck:'67% of LPs want private credit exposure. Here\'s the mandate review, co-investment framework, and client narrative.',
+        framing:'Framed for Rachel Torres, MD Client Relations — LP engagement and co-investment strategy for private credit.',
+        beats:[
+          {type:'intro',text:'Private credit is the most requested asset class in our LP base. In the last RFP cycle, 67% of responding LPs indicated they would increase allocations if MMM offered expanded private credit access. Three LPs have specifically offered to increase their AUM commitment if co-investment rights are included.'},
+          {type:'insight',label:'Co-Investment Opportunity',text:'Three Tier-1 LPs eligible for co-investment: (1) Nordic Pension — $180M current AUM, has requested $50M co-investment access in direct lending; (2) Pacific Trust — $140M AUM, wants infrastructure credit co-invest; (3) Gulf SWF — $220M AUM, interested in healthcare credit. Combined co-investment appetite: $150M+ — effectively sourcing a meaningful portion of the expansion capital from LP relationships.'},
+          {type:'action',label:'Outreach Plan',text:'Schedule co-investment framework conversations with all three LPs before the expansion approval is finalized. Having LP co-investment commitments in hand strengthens the investment committee case and demonstrates LP alignment. Rachel — this is the week to make those calls.'},
+          {type:'risk',label:'Communication Risk',text:'Do not overpromise performance. The 11.2% gross yield is pre-default and pre-fee. Client-facing yield should be quoted at 8.5-9.5% net, with clear explanation of the default rate assumption. Overselling this asset class is a retention risk when market conditions inevitably soften.'},
+        ]
+      }
+    }
+  },
+  {id:'spacex',index:3,title:'SpaceX IPO Positioning',short:'SpaceX IPO',icon:'◆',color:'#f97316',colorDim:'rgba(249,115,22,0.10)',colorBorder:'rgba(249,115,22,0.25)',
+    readTime:{marcus:5,sarah:10,diana:6,james:4,rachel:7},
+    memberDepth:{marcus:'50%',sarah:'95%',diana:'65%',james:'45%',rachel:'80%'},
+    learn:[
+      {tag:'Context',color:'#f97316',title:'Why SpaceX Is Different',body:'SpaceX is not a government contractor — it\'s a vertically integrated aerospace and internet company. Starlink (its satellite internet division) is tracking $8B in 2026 revenue and growing 80% YoY. At scale, Starlink alone could justify the entire current $350B valuation, making the launch business effectively free in the model.'},
+      {tag:'Mechanics',color:'#6366f1',title:'Pre-IPO Secondary Markets',body:'SpaceX equity trades in secondary markets at implied valuations. Tender offers allow existing shareholders to sell to institutional buyers. Key risk: the valuation is set by private market demand, not public market price discovery — making fair value judgment a conviction call.'},
+      {tag:'Concept',color:'#d4a843',title:'How to Value a Pre-IPO Unicorn',body:'Sum-of-the-parts: Starlink ($8B rev × 8-12x revenue = $64-96B), Launch business ($3B rev × 6x = $18B), Starship commercial potential ($50-200B upside scenario). Bull case enterprise value: $350-450B. Bear case (Starlink growth disappoints): $120-180B. The wide range reflects the frontier nature of the business.'},
+    ],
+    metrics:[
+      {label:'Implied Valuation',value:350,suffix:'B',delta:'Current tender offer price',trend:'up'},
+      {label:'Starlink Revenue',value:8,suffix:'B',delta:'2026E, +80% YoY',trend:'up'},
+      {label:'Launch Mkt Share',value:72,suffix:'%',delta:'of global orbital launches',trend:'up'},
+      {label:'Proposed Position',value:150,suffix:'M',delta:'0.8% of AUM at current price',trend:'neutral'},
+    ],
+    content:{
+      marcus:{
+        headline:'SpaceX: The Most Consequential Investment Decision of 2026',
+        deck:'The opportunity to acquire a $150M stake in SpaceX before the most anticipated IPO since Alibaba. Here\'s the decision framework.',
+        framing:'Framed for Marcus Webb, CEO — Strategic and narrative framing of the SpaceX investment decision.',
+        beats:[
+          {type:'intro',text:'SpaceX is running a tender offer that would allow MMM to acquire up to $150M in equity at a $350B implied valuation. Starlink, SpaceX\'s satellite internet subsidiary, generated $8B in revenue in 2026 and is growing at 80% per year. The IPO timeline: 2027-2028 based on current guidance from management.'},
+          {type:'insight',label:'Strategic Significance',text:'This is not just an investment decision — it\'s a brand and positioning decision. An MMM-SpaceX connection creates narrative capital with growth-oriented LPs, tech-forward institutional investors, and the endowment community. The managers who hold SpaceX pre-IPO will have a decade-long differentiation story.'},
+          {type:'action',label:'Decision Required',text:'The investment team recommends a $150M commitment at $350B valuation. This requires leadership approval given the size, illiquidity (2-3 year IPO timeline), and concentrated nature of the position. The tender window closes in 14 days.'},
+          {type:'risk',label:'Key Risk',text:'The primary risk is valuation: at $350B, we\'re paying a premium to our base case of $166B. The secondary risk is timeline: if the IPO is delayed to 2030+, the position is illiquid for longer than modeled. The tertiary risk is execution: Starship commercial missions must scale for the bull case to materialize.'},
+        ]
+      },
+      sarah:{
+        headline:'SpaceX Valuation: Full Financial Model & Risk Analysis',
+        deck:'Sum-of-the-parts model, scenario analysis, portfolio construction implications, and the CIO\'s recommendation.',
+        framing:'Framed for Sarah Chen, CIO — Full financial model and portfolio construction depth on SpaceX.',
+        beats:[
+          {type:'intro',text:'Sum-of-parts valuation (June 2026): Starlink ($8B 2026E rev × 10x = $80B); Launch business ($3.2B rev × 6x = $19B); Starship commercial (NPV of 5% probability-weighted scenarios = $25B); Government contracts ($4.1B backlog × 3x = $12B). Base case enterprise value: $136B + $30B control premium = $166B. Current tender: $350B. We are being asked to pay a 110% premium to base case.'},
+          {type:'insight',label:'Bull Case Justification',text:'The $350B is justified if: (1) Starlink maintains 80% growth for 2 more years ($26B revenue by 2028); (2) Starship commercial launches begin at scale by 2027; (3) SpaceX captures 15% of global broadband market (500M+ subscribers). Under this scenario, 2028 revenue = $38B+ and the business is worth $380-500B. The bull case makes the entry price reasonable.'},
+          {type:'risk',label:'Scenario Analysis',text:'Bear case (Starlink growth decelerates to 30%, Starship delayed): 2028 value = $120-160B. IRR at $350B entry to $140B exit = -20% annually. The bull case upside (+50-100% from entry) is proportionally smaller than the bear case downside (-60%). Position should be sized accordingly — 0.8% of AUM is reasonable; 2%+ would be imprudent.'},
+          {type:'action',label:'CIO Recommendation',text:'Approve $150M (0.8% of AUM) with conditions: (1) structured as a tender offer participation with pro-rata secondary rights; (2) carry value methodology documented (DCF-based, quarterly review); (3) exit plan defined: IPO participation rights secured in the purchase agreement. Do not approve more than $200M at this valuation.'},
+        ]
+      },
+      diana:{
+        headline:'SpaceX Position: Financial Risk & Valuation Framework',
+        deck:'$150M illiquid position. Carrying value methodology, board reporting requirements, and the financial risk quantification.',
+        framing:'Framed for Diana Foster, CFO — Financial risk, valuation, and board reporting for the SpaceX position.',
+        beats:[
+          {type:'intro',text:'$150M illiquid pre-IPO position requires a formal valuation policy: AICPA PE/VC valuation guidelines recommend DCF-based carrying value with quarterly sensitivity review. At $350B entry valuation, the position will be carried at cost until there is a material round or IPO trigger. Board will see $150M line item with no market-observable price for 2-3 years.'},
+          {type:'insight',label:'Valuation Framework',text:'Recommended carrying value approach: cost basis ($350B implied) unless: (1) new funding round at lower valuation (mark down); (2) public comparable transaction (mark to comparable EV); (3) material adverse event (write-down). Quarterly update to the board with Starlink KPI tracking (subscribers, ARR, gross margin) as valuation proxies.'},
+          {type:'risk',label:'Financial Exposure',text:'Stress scenario: SpaceX announces Starship program delay in Q1 2027 and valuation re-sets to $200B on secondary markets. Paper loss on $150M position: ~$64M (43% markdown). This would be disclosed in the quarterly report. Ensure board is pre-briefed on the valuation methodology and range of outcomes before the position is taken.'},
+          {type:'action',label:'CFO Requirements',text:'Before approval: (1) obtain a third-party valuation opinion at entry; (2) confirm accounting treatment with auditors (ASC 820 Level 3 fair value); (3) ensure purchase agreement includes anti-dilution protection and IPO registration rights; (4) review tax treatment of pre-IPO equity for the fund\'s LP structure.'},
+        ]
+      },
+      james:{
+        headline:'SpaceX IPO: Public Market Implications & Comparable Analysis',
+        deck:'SpaceX\'s IPO will be a market-moving event. Here\'s the comparable analysis and the public equity read-through.',
+        framing:'Framed for James Park, Head of Equities — Public market comparables and trading implications of SpaceX IPO.',
+        beats:[
+          {type:'intro',text:'SpaceX\'s eventual IPO will be the most significant public market event since Alibaba (2014, $231B market cap at IPO). The market impact will be broad: index inclusion triggers (S&P 500 instant inclusion by market cap), sector weight changes (aerospace & defense, telecom infrastructure), and capital reallocation from less differentiated technology holdings.'},
+          {type:'insight',label:'Public Comparable Analysis',text:'Public comparables: Viasat ($4.7B EV, 3.2x revenue), Iridium ($4.1B, 4.8x) — dwarfed by Starlink\'s scale. There are no true public comparables. The nearest analogy is Netflix in 2012: a subscription internet business growing 80% with a winner-take-most dynamic. Netflix at equivalent stage traded at 8-12x revenue.'},
+          {type:'risk',label:'Sector Rotation Risk',text:'SpaceX IPO will draw capital from traditional defense aerospace (Northrop, Raytheon, L3Harris). Our current defense overweight (~2.5% of equity book) may face headwinds as the IPO date approaches and capital rotates. Monitor the 3-6 month pre-IPO window for defensive positioning.'},
+          {type:'action',label:'Recommendation',text:'Regardless of the pre-IPO position decision, establish a $50M public equity "SpaceX ecosystem" basket: satellite infrastructure names, laser inter-satellite link vendors, and terrestrial ground station operators. These benefit from Starlink scale with lower valuation risk than SpaceX direct.'},
+        ]
+      },
+      rachel:{
+        headline:'SpaceX: The LP Conversation Opportunity of the Decade',
+        deck:'Access to SpaceX is the most powerful LP conversation asset MMM has ever had. Here\'s how to use it strategically.',
+        framing:'Framed for Rachel Torres, MD Client Relations — Strategic use of SpaceX access for LP relationships.',
+        beats:[
+          {type:'intro',text:'SpaceX access is institutional-grade scarce. Most large asset managers cannot participate — the tender offer is oversubscribed and restricted to qualified purchasers with existing relationships. MMM\'s ability to offer co-investment rights and portfolio exposure is a relationship differentiator that will be talked about for years.'},
+          {type:'insight',label:'LP Strategy',text:'Prioritized LP conversations this week: (1) Nordic Pension — has asked directly about space/deep-tech exposure. Offer co-investment rights up to $20M. (2) Gulf SWF — strategic interest in US tech exposure. Brief the CIO on our position and offer a strategy call with Sarah. (3) Three endowments — endowments have longest investment horizons and highest tolerance for pre-IPO illiquidity. These are the natural co-invest partners.'},
+          {type:'action',label:'Communication Plan',text:'Do NOT communicate the SpaceX position publicly before the tender closes (14 days). Once closed: prepare a dedicated LP letter explaining the position, the valuation framework, and MMM\'s thesis. This letter should be personally delivered by Rachel or Marcus to Tier-1 LPs — not emailed.'},
+          {type:'risk',label:'Expectation Management',text:'The SpaceX story sells itself — resist the temptation to overpromise. LPs who co-invest need to understand: 0.8% AUM cap, 2-3yr illiquidity, base case IRR of 15-25% (not "10x"). The clients who will be most valuable long-term are the ones who understood the risk profile clearly from day one.'},
+        ]
+      }
+    }
+  }
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let STATE = {
+  member: null,
+  chapter: 0,
+  contentMode: 'brief',
+  readChapters: new Set(),
+  player: { playing: false, progress: 0, duration: 360, speed: 1, interval: null },
+  panelOpen: true,
+  panelMode: 'ai',
+};
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function init() {
+  renderMemberGrid();
+  generateWaveformCSS();
+}
+
+function renderMemberGrid() {
+  const grid = document.getElementById('member-grid');
+  Object.values(MEMBERS).forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'member-card';
+    card.style.setProperty('--member-accent', m.color);
+    card.style.setProperty('--member-accent-dim', m.colorDim);
+    card.innerHTML = `
+      <div class="avatar-ring" style="border-color:${m.color};color:${m.color}">${m.initials}</div>
+      <div class="mc-name">${m.name}</div>
+      <div class="mc-title">${m.title}</div>
+      <div class="exp-dots">${[0,1,2].map(i=>`<div class="exp-dot${m.exp[0]>i*1.5?' filled':''}"></div>`).join('')}</div>
+      <div class="mc-ready">Brief ready ✦</div>`;
+    card.onclick = () => selectMember(m.id);
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left - r.width/2) / (r.width/2);
+      const y = (e.clientY - r.top - r.height/2) / (r.height/2);
+      card.style.transform = `translateY(-6px) rotateX(${(-y*10).toFixed(1)}deg) rotateY(${(x*10).toFixed(1)}deg)`;
+      card.style.transition = 'box-shadow .25s,border-color .25s,opacity .3s';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.transition = 'transform .4s var(--ease),box-shadow .25s,border-color .25s,opacity .3s';
+    });
+    grid.appendChild(card);
+  });
+}
+
+function selectMember(id) {
+  const cards = document.querySelectorAll('.member-card');
+  cards.forEach(c => c.classList.add('dimmed'));
+  event.currentTarget.classList.remove('dimmed');
+  event.currentTarget.classList.add('selected');
+
+  const overlay = document.getElementById('loading-overlay');
+  const text = document.getElementById('loading-text');
+  overlay.classList.add('active');
+
+  const msgs = ['Analyzing your profile…', 'Personalizing Q2 content…', 'Calibrating depth & lens…', 'Brief ready.'];
+  let i = 0;
+  const cycle = setInterval(() => {
+    if (i < msgs.length) { text.textContent = msgs[i++]; }
+    else { clearInterval(cycle); loadBriefRoom(id); }
+  }, 600);
+}
+
+function loadBriefRoom(id) {
+  STATE.member = id;
+  STATE.panelMode = 'ai';
+  const m = MEMBERS[id];
+
+  // Apply member theme
+  const root = document.documentElement;
+  root.style.setProperty('--member-color', m.color);
+  root.style.setProperty('--member-color-dim', m.colorDim);
+
+  // Top bar chip
+  document.getElementById('chip-avatar').style.background = m.colorDim;
+  document.getElementById('chip-avatar').style.color = m.color;
+  document.getElementById('chip-avatar').textContent = m.initials;
+  document.getElementById('chip-name').textContent = m.name;
+
+  // Build nav sections
+  buildChapterNav();
+  buildNewsStrip();
+
+  // Switch screens
+  setTimeout(() => {
+    document.getElementById('loading-overlay').classList.remove('active');
+    document.getElementById('screen-identity').classList.add('hidden');
+    document.getElementById('screen-brief').classList.remove('hidden');
+
+    // Greeting in AI panel
+    setTimeout(() => {
+      addAIMessage(m.greeting);
+      renderSuggestions(0);
+    }, 400);
+
+    // Load first chapter
+    loadChapter(0);
+  }, 400);
+}
+
+// ══════════════════════════════════════════
+// CHAPTER NAV
+// ══════════════════════════════════════════
+function buildChapterNav() {
+  const nav = document.getElementById('chapter-nav');
+  nav.innerHTML = '';
+  CHAPTERS.forEach((ch, i) => {
+    const m = MEMBERS[STATE.member];
+    const depthPct = ch.memberDepth ? ch.memberDepth[STATE.member] : m.depthPct;
+    const item = document.createElement('div');
+    item.className = 'chapter-item' + (i === 0 ? ' active' : '');
+    item.id = `ch-nav-${i}`;
+    item.style.setProperty('--ch-color', ch.color);
+    item.innerHTML = `
+      <div class="ch-dot"></div>
+      <div class="ch-info">
+        <div class="ch-title">${ch.short}</div>
+        <div class="ch-meta">${ch.content[STATE.member].headline.slice(0,32)}…</div>
+        <div class="ch-depth-mini"><div class="ch-depth-mini-fill" style="width:${depthPct}"></div></div>
+      </div>
+      <div class="ch-time">${ch.readTime[STATE.member]}m</div>`;
+    item.onclick = () => loadChapter(i);
+    nav.appendChild(item);
+  });
+}
+
+function buildNewsStrip() {
+  const el = document.getElementById('news-strip');
+  if (!el) return;
+  el.innerHTML = NEWS.map(n => `
+    <div class="ns-card" style="--nsc:${n.tagColor};--nsbg:${n.tagBg}">
+      <span class="ns-tag">${n.tag}</span>
+      <div class="ns-head">${n.headline}</div>
+      <div class="ns-foot">${n.source} · ${n.time}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// PANEL MODE SWITCHING
+// ══════════════════════════════════════════
+function switchPanelMode(mode) {
+  STATE.panelMode = mode;
+  document.querySelectorAll('.panel-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.pt === mode)
+  );
+  document.getElementById('panel-ai').style.display = mode === 'ai' ? 'flex' : 'none';
+  document.getElementById('panel-summary').style.display = mode === 'summary' ? 'flex' : 'none';
+  document.getElementById('panel-learn').style.display = mode === 'learn' ? 'flex' : 'none';
+  document.getElementById('panel-actions').style.display = mode === 'actions' ? 'flex' : 'none';
+  const ch = CHAPTERS[STATE.chapter];
+  const m = MEMBERS[STATE.member];
+  if (mode === 'summary') buildSummaryPanel(ch, m);
+  if (mode === 'learn') buildLearnPanel(ch, m);
+  if (mode === 'actions') buildActionsPanel(STATE.member);
+}
+
+function buildSummaryPanel(ch, m) {
+  const el = document.getElementById('summary-content');
+  if (!el || !ch || !m) return;
+  const content = ch.content[m.id];
+  if (!content) return;
+  const beats = content.beats || [];
+  const intro = beats.find(b => b.type === 'intro');
+  const insights = beats.filter(b => b.type === 'insight');
+  const actions = beats.filter(b => b.type === 'action');
+  const risks = beats.filter(b => b.type === 'risk');
+  el.innerHTML = `
+    <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">${ch.icon} ${ch.short} · ${m.depthLabel}</div>
+    <div class="learn-summary" style="--lsc:${ch.color}">
+      <div class="learn-summary-label">Brief</div>
+      <div class="learn-summary-headline">${content.headline}</div>
+      <div class="learn-summary-deck">${content.deck}</div>
+    </div>
+    ${intro ? `<div style="font-size:11px;color:var(--platinum);line-height:1.7;padding:4px 0">${intro.text}</div>` : ''}
+    ${insights.length ? `
+      <div class="learn-divider">Key Insights</div>
+      ${insights.map(b => `
+        <div style="padding:10px 12px;border-radius:8px;background:var(--depth-3);border:1px solid var(--border);border-left:2px solid ${ch.color};margin-bottom:8px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${ch.color};margin-bottom:4px">${b.label||'Insight'}</div>
+          <div style="font-size:11px;color:var(--platinum);line-height:1.6">${b.text}</div>
+        </div>`).join('')}` : ''}
+    ${actions.length ? `
+      <div class="learn-divider">Actions</div>
+      ${actions.map(b => `
+        <div style="padding:10px 12px;border-radius:8px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.18);margin-bottom:8px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#22c55e;margin-bottom:4px">${b.label||'Action'}</div>
+          <div style="font-size:11px;color:var(--platinum);line-height:1.6">${b.text}</div>
+        </div>`).join('')}` : ''}
+    ${risks.length ? `
+      <div class="learn-divider">Risks to Watch</div>
+      ${risks.map(b => `
+        <div style="padding:10px 12px;border-radius:8px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);margin-bottom:8px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ef4444;margin-bottom:4px">${b.label||'Risk'}</div>
+          <div style="font-size:11px;color:var(--platinum);line-height:1.6">${b.text}</div>
+        </div>`).join('')}` : ''}`;
+}
+
+function buildLearnPanel(ch, m) {
+  const el = document.getElementById('learn-content');
+  if (!el || !ch.learn) return;
+  el.innerHTML = `
+    <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">${ch.icon} ${ch.title} · Concepts</div>
+    ${ch.learn.map(c => `
+      <div class="learn-card" style="--lc-color:${c.color}">
+        <div class="lc-tag">${c.tag}</div>
+        <div class="lc-title">${c.title}</div>
+        <div class="lc-body">${c.body}</div>
+      </div>`).join('')}`;
+}
+
+function buildActionsPanel(memberId) {
+  const el = document.getElementById('actions-content');
+  if (!el) return;
+  const m = MEMBERS[memberId];
+  const items = CHAPTERS.flatMap(ch =>
+    (ch.content[memberId]?.beats || [])
+      .filter(b => b.type === 'action')
+      .map(b => ({chTitle:ch.short, chIcon:ch.icon, chColor:ch.color, label:b.label, text:b.text}))
+  );
+  if (!items.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:20px 0">No action items found.</div>'; return; }
+  el.innerHTML = `
+    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+      ${m.name} · Action Items
+    </div>
+    ${items.map(a => `
+      <div class="ap-item">
+        <div class="ap-chapter">
+          <span class="ap-ch-icon" style="color:${a.chColor}">${a.chIcon}</span>
+          <span class="ap-ch-name">${a.chTitle}</span>
+        </div>
+        <div class="ap-label">${a.label}</div>
+        <div class="ap-text">${a.text}</div>
+      </div>`).join('')}`;
+}
+
+// ══════════════════════════════════════════
+// CHAPTER RENDER
+// ══════════════════════════════════════════
+function loadChapter(idx) {
+  STATE.chapter = idx;
+  STATE.readChapters.add(idx);
+
+  // Update nav
+  document.querySelectorAll('.chapter-item').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+    if (STATE.readChapters.has(i)) el.classList.add('read');
+  });
+  const ch = CHAPTERS[idx];
+  const content = ch.content[STATE.member];
+  const m = MEMBERS[STATE.member];
+
+  // Update AI context
+  document.getElementById('ai-context-text').textContent = `Reading: ${ch.title}`;
+  renderSuggestions(idx);
+  if (STATE.panelMode === 'summary') buildSummaryPanel(CHAPTERS[idx], MEMBERS[STATE.member]);
+  if (STATE.panelMode === 'learn') buildLearnPanel(CHAPTERS[idx], MEMBERS[STATE.member]);
+
+  renderCanvas(ch, content, m);
+}
+
+function buildChapterHTML(ch, content, m) {
+  const metricsHTML = ch.metrics.map(metric => `
+    <div class="metric-card">
+      <span class="metric-value" data-target="${Math.abs(metric.value)}" data-suffix="${metric.suffix}" data-neg="${metric.value < 0}">0${metric.suffix}</span>
+      <span class="metric-label">${metric.label}</span>
+      <div class="metric-delta ${metric.trend}">
+        ${metric.trend==='up'?'↑':metric.trend==='down'?'↓':'→'} ${metric.delta}
+      </div>
+      <svg class="sparkline" width="120" height="28" viewBox="0 0 120 28">${generateSparkline(metric.trend)}</svg>
+    </div>`).join('');
+
+  const beatsHTML = content.beats.map(beat => {
+    if (beat.type === 'intro') return `<div class="beat beat-intro"><p>${beat.text}</p></div>`;
+    if (beat.type === 'insight') return `<div class="beat beat-insight"><div class="insight-label">${beat.label}</div><div class="insight-body">${beat.text}</div></div>`;
+    if (beat.type === 'risk') return `<div class="beat beat-risk"><div class="risk-label">⚠ ${beat.label}</div><p style="font-size:13px;color:var(--platinum)">${beat.text}</p></div>`;
+    if (beat.type === 'action') return `<div class="beat beat-action"><div class="action-label">→ ${beat.label}</div><p style="font-size:13px;color:var(--white)">${beat.text}</p></div>`;
+    return '';
+  }).join('');
+
+  return `
+    <div class="ch-hero" style="--ch-color:${ch.color};--ch-color-dim:${ch.colorDim};--ch-color-border:${ch.colorBorder}">
+      <div class="ch-category-badge">${ch.icon} ${ch.title}</div>
+      <h1 class="ch-headline">${content.headline}</h1>
+      <p class="ch-deck">${content.deck}</p>
+      <div class="ch-meta-row">
+        <span>🕐 ${ch.readTime[STATE.member]} min read</span>
+        <span>✦ AI-Personalized</span>
+        <span>📅 June 11, 2026</span>
+      </div>
+      <div class="ch-accent-line"></div>
+    </div>
+
+    <div class="ai-framing">
+      <div class="ai-framing-icon">✦</div>
+      <div class="ai-framing-text"><strong>${content.framing}</strong></div>
+    </div>
+
+    <div class="metrics-row" style="--ch-color:${ch.color}">${metricsHTML}</div>
+
+    ${beatsHTML}
+
+    <button class="deep-dive-trigger" onclick="toggleDeepDive(this)">
+      <span>✦</span> Expand Full Analysis — Extended Insights & Methodology
+      <span style="margin-left:auto;opacity:.5">▾</span>
+    </button>
+    <div class="deep-dive-content" id="deep-dive">
+      <div class="deep-dive-inner">
+        <p style="font-size:13px;color:var(--platinum);line-height:1.8">
+          <strong style="color:var(--white);display:block;margin-bottom:8px">Extended Analysis</strong>
+          This section contains the full quantitative breakdown, methodology notes, and scenario analysis underlying the key insights above. For ${m.name}, this content is presented at ${m.depthLabel} depth — adjust your profile to change the verbosity level.<br><br>
+          The investment thesis for this chapter has been reviewed by the AI against MMM's stated mandate objectives, LP requirements, and peer positioning. All data references are current as of June 11, 2026. Benchmark comparisons use the MMM Composite Benchmark (60% MSCI World / 20% Bloomberg Aggregate / 20% Cambridge Associates PE Index).
+        </p>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// INFOGRAPHICS
+// ══════════════════════════════════════════
+function buildRadial(value, max, color, label, display) {
+  const r = 28, circ = 2 * Math.PI * r;
+  const arc = (circ * value / max).toFixed(1);
+  return `<div class="ig-radial">
+    <svg viewBox="0 0 70 70" width="66" height="66">
+      <circle cx="35" cy="35" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>
+      <circle cx="35" cy="35" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+        stroke-dasharray="0 ${circ.toFixed(1)}" stroke-linecap="round"
+        transform="rotate(-90 35 35)"
+        class="ig-radial-circle" style="--arc:${arc};animation-fill-mode:forwards"/>
+      <text x="35" y="40" text-anchor="middle" fill="${color}" font-size="11.5" font-weight="700" font-family="JetBrains Mono,monospace">${display}</text>
+    </svg>
+    <div class="ig-radial-label">${label}</div>
+  </div>`;
+}
+
+function buildInfographic(ch, m) {
+  const s = `style="--ch-color:${ch.color};--ch-color-dim:${ch.colorDim}"`;
+
+  if (ch.id === 'ai') return `
+  <div class="infographic" ${s}>
+    <div class="ig-header">
+      <div class="ig-header-left">
+        <div class="ig-header-sup">Q2 2026 · AI Deployment</div>
+        <div class="ig-header-name">AI in Finance — MMM Overview</div>
+      </div>
+      <div class="ig-hero-stat">
+        <div class="ig-hero-num" style="color:#6366f1">+42 bps</div>
+        <div class="ig-hero-label">AI-Attributed Alpha Q2</div>
+      </div>
+    </div>
+    <div class="ig-2col">
+      <div>
+        <div class="ig-section-title">AI Alpha by Model</div>
+        <div class="ig-bar-chart" style="margin-top:6px">
+          <div class="ig-bar-row"><div class="ig-bar-label">NLP Sentiment</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:43%;background:#6366f1"></div></div><div class="ig-bar-val" style="color:#6366f1">18 bps</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">Risk Classifier</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:38%;background:#818cf8"></div></div><div class="ig-bar-val" style="color:#818cf8">16 bps</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">Regime Model</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:19%;background:#a5b4fc"></div></div><div class="ig-bar-val" style="color:#a5b4fc">8 bps</div></div>
+          <div class="ig-bar-row" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)">
+            <div class="ig-bar-label" style="font-weight:700;color:var(--white)">Total AI Alpha</div>
+            <div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:#6366f1;opacity:.5"></div></div>
+            <div class="ig-bar-val" style="color:#6366f1;font-weight:700">42 bps</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="ig-section-title">AI Capability Coverage (%)</div>
+        <div class="ig-bar-chart" style="margin-top:6px">
+          <div class="ig-bar-row"><div class="ig-bar-label">Research</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:78%;background:#6366f1"></div></div><div class="ig-bar-val">78%</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">Trade Execution</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:55%;background:#6366f1"></div></div><div class="ig-bar-val">55%</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">Risk Monitoring</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:40%;background:#6366f1"></div></div><div class="ig-bar-val">40%</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">Client Reporting</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:22%;background:#4a5068"></div></div><div class="ig-bar-val" style="color:var(--muted)">22%</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">Compliance</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:15%;background:#4a5068"></div></div><div class="ig-bar-val" style="color:var(--muted)">15%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ig-kv-row">
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#6366f1">34%</div><div class="ig-kv-label">AI-Assisted AUM</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">71%</div><div class="ig-kv-label">Signal Accuracy</div></div>
+      <div class="ig-kv"><div class="ig-kv-val">$2.1M</div><div class="ig-kv-label">Annual Savings</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">34%</div><div class="ig-kv-label">Platform IRR</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">18mo</div><div class="ig-kv-label">Edge Window</div></div>
+    </div>
+    <div class="ig-section">
+      <div class="ig-section-title">AI Alpha Trend — Q3'25 to Q2'26 (bps)</div>
+      <svg viewBox="0 0 440 110" width="100%" style="overflow:visible">
+        <line x1="0" y1="88" x2="440" y2="88" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+        <line x1="0" y1="60" x2="440" y2="60" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,5"/>
+        <line x1="0" y1="35" x2="440" y2="35" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,5"/>
+        <text x="438" y="91" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="end">0</text>
+        <text x="438" y="63" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="end">20</text>
+        <text x="438" y="38" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="end">35</text>
+        <rect x="29" y="72" width="30" height="16" rx="3" fill="#6366f1" opacity=".6"/>
+        <rect x="139" y="66" width="30" height="22" rx="3" fill="#6366f1" opacity=".7"/>
+        <rect x="249" y="60" width="30" height="28" rx="3" fill="#6366f1" opacity=".85"/>
+        <rect x="359" y="42" width="30" height="46" rx="3" fill="#6366f1"/>
+        <text x="44" y="69" fill="#818cf8" font-size="7.5" font-family="monospace" text-anchor="middle">8</text>
+        <text x="154" y="63" fill="#818cf8" font-size="7.5" font-family="monospace" text-anchor="middle">18</text>
+        <text x="264" y="57" fill="#818cf8" font-size="7.5" font-family="monospace" text-anchor="middle">24</text>
+        <text x="374" y="38" fill="#818cf8" font-size="8" font-weight="700" font-family="monospace" text-anchor="middle">42 ★</text>
+        <text x="44" y="103" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="middle">Q3'25</text>
+        <text x="154" y="103" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="middle">Q4'25</text>
+        <text x="264" y="103" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="middle">Q1'26</text>
+        <text x="374" y="103" fill="#4a5068" font-size="8" font-family="monospace" text-anchor="middle">Q2'26</text>
+      </svg>
+    </div>
+  </div>`;
+
+  if (ch.id === 'crypto') return `
+  <div class="infographic" ${s}>
+    <div class="ig-header">
+      <div class="ig-header-left">
+        <div class="ig-header-sup">June 2026 · Digital Assets</div>
+        <div class="ig-header-name">Cryptography &amp; Tokenized Assets</div>
+      </div>
+      <div class="ig-hero-stat">
+        <div class="ig-hero-num" style="color:#f59e0b">$12B</div>
+        <div class="ig-hero-label">Global Tokenized RWA Market</div>
+      </div>
+    </div>
+    <div class="ig-esg-row">
+      <div class="ig-esg-gauge">
+        ${buildRadial(0,100,'#4a5068','Exposure','0%')}
+        <div class="ig-esg-gauge-label">Direct Crypto<br>Allocation</div>
+      </div>
+      <div class="ig-esg-gauge">
+        ${buildRadial(89,100,'#f59e0b','DAMS','89%')}
+        <div class="ig-esg-gauge-label">DAMS Act<br>Asset Clarity</div>
+      </div>
+      <div class="ig-esg-gauge">
+        ${buildRadial(18,100,'#10b981','Savings','18bps')}
+        <div class="ig-esg-gauge-label">Potential Funding<br>Cost Reduction</div>
+      </div>
+      <div class="ig-esg-gauge">
+        ${buildRadial(26,100,'#6366f1','LP Ask','26%')}
+        <div class="ig-esg-gauge-label">LPs Asking About<br>Digital Assets</div>
+      </div>
+    </div>
+    <div class="ig-2col" style="margin-top:20px">
+      <div>
+        <div class="ig-section-title">Tokenized RWA Market Growth ($B)</div>
+        <div class="ig-bar-chart" style="margin-top:6px">
+          <div class="ig-bar-row"><div class="ig-bar-label">2023</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:8%;background:#4a5068"></div></div><div class="ig-bar-val">$0.9B</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">2024</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:25%;background:#f59e0b;opacity:.55"></div></div><div class="ig-bar-val">$3.0B</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">2025</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:50%;background:#f59e0b;opacity:.75"></div></div><div class="ig-bar-val">$6.1B</div></div>
+          <div class="ig-bar-row"><div class="ig-bar-label">Q2 2026</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:#f59e0b"></div></div><div class="ig-bar-val" style="color:#f59e0b">$12B ↑</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="ig-section-title">Institutional Adoption Status</div>
+        <table class="ig-table" style="margin-top:4px">
+          <thead><tr><th>Product</th><th>Provider</th><th>AUM</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#f59e0b">● Tokenized Treasury</td><td>BlackRock BUIDL</td><td style="color:#22c55e">$1.0B</td></tr>
+            <tr><td style="color:#f59e0b">● Tokenized MMF</td><td>Franklin FOBXX</td><td style="color:#22c55e">$480M</td></tr>
+            <tr><td style="color:#6366f1">● ZK Settlement</td><td>StarkWare</td><td style="color:#22c55e">$2.3T vol</td></tr>
+            <tr><td style="color:#4a5068">○ MMM Position</td><td>—</td><td style="color:var(--muted)">$0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="ig-kv-row">
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">$12B</div><div class="ig-kv-label">RWA Market Size</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">+300%</div><div class="ig-kv-label">YoY Market Growth</div></div>
+      <div class="ig-kv"><div class="ig-kv-val">60-90d</div><div class="ig-kv-label">ISDA Amendment Timeline</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">$50M</div><div class="ig-kv-label">Proposed Pilot Size</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">89%</div><div class="ig-kv-label">Regulatory Clarity</div></div>
+    </div>
+  </div>`;
+
+  if (ch.id === 'credit') return `
+  <div class="infographic" ${s}>
+    <div class="ig-header">
+      <div class="ig-header-left">
+        <div class="ig-header-sup">Q2 2026 · Private Credit</div>
+        <div class="ig-header-name">Private Credit Expansion — $1.1B</div>
+      </div>
+      <div class="ig-hero-stat">
+        <div class="ig-hero-num" style="color:#10b981">11.2%</div>
+        <div class="ig-hero-label">Gross Portfolio Yield</div>
+      </div>
+    </div>
+    <div class="ig-3col" style="margin-bottom:0">
+      <div class="ig-deal-expanded" style="--de-color:#10b981">
+        <div class="ig-deal-header">
+          <div class="ig-deal-name">Tech / SaaS</div>
+          <div style="font-size:9px;color:#10b981">28% of book</div>
+        </div>
+        <div class="ig-deal-amount">$412M</div>
+        <div class="ig-deal-metrics">
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#10b981">475 bps</div><div class="ig-deal-metric-key">Spread</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.3×</div><div class="ig-deal-metric-key">Avg DSCR</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">5yr</div><div class="ig-deal-metric-key">Avg Term</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.4%</div><div class="ig-deal-metric-key">Default Rate</div></div>
+        </div>
+        <div class="ig-bar-h"><div class="ig-bar-h-fill" style="--w:80%;background:#10b981"></div></div>
+      </div>
+      <div class="ig-deal-expanded" style="--de-color:#d4a843">
+        <div class="ig-deal-header">
+          <div class="ig-deal-name">Healthcare</div>
+          <div style="font-size:9px;color:#d4a843">22% of book</div>
+        </div>
+        <div class="ig-deal-amount">$323M</div>
+        <div class="ig-deal-metrics">
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#d4a843">500 bps</div><div class="ig-deal-metric-key">Spread</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.1×</div><div class="ig-deal-metric-key">Avg DSCR</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">6yr</div><div class="ig-deal-metric-key">Avg Term</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.8%</div><div class="ig-deal-metric-key">Default Rate</div></div>
+        </div>
+        <div class="ig-bar-h"><div class="ig-bar-h-fill" style="--w:72%;background:#d4a843"></div></div>
+      </div>
+      <div class="ig-deal-expanded" style="--de-color:#6366f1">
+        <div class="ig-deal-header">
+          <div class="ig-deal-name">Infrastructure</div>
+          <div style="font-size:9px;color:#f59e0b">⚡ Expansion Priority</div>
+        </div>
+        <div class="ig-deal-amount">$280M</div>
+        <div class="ig-deal-metrics">
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#6366f1">425 bps</div><div class="ig-deal-metric-key">Spread</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">2.8×</div><div class="ig-deal-metric-key">Avg DSCR</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val">7yr</div><div class="ig-deal-metric-key">Avg Term</div></div>
+          <div class="ig-deal-metric"><div class="ig-deal-metric-val" style="color:#22c55e">0.2%</div><div class="ig-deal-metric-key">Default Rate</div></div>
+        </div>
+        <div class="ig-bar-h"><div class="ig-bar-h-fill" style="--w:90%;background:#6366f1"></div></div>
+      </div>
+    </div>
+    <div class="ig-section">
+      <div class="ig-section-title">Expansion Capital Deployment Timeline</div>
+      <div class="ig-gantt">
+        <div class="ig-gantt-row">
+          <div class="ig-gantt-label">Tech / SaaS<br><span style="color:#10b981;font-size:9px">$320M new</span></div>
+          <div class="ig-gantt-track">
+            <div class="ig-gantt-bar" style="left:0%;width:55%;background:#10b981;color:#000">Underwriting → Close</div>
+          </div>
+        </div>
+        <div class="ig-gantt-row">
+          <div class="ig-gantt-label">Infrastructure<br><span style="color:#6366f1;font-size:9px">$420M new</span></div>
+          <div class="ig-gantt-track">
+            <div class="ig-gantt-bar" style="left:5%;width:75%;background:#6366f1">DD → Close → Fund</div>
+          </div>
+        </div>
+        <div class="ig-gantt-row">
+          <div class="ig-gantt-label">Healthcare<br><span style="color:#d4a843;font-size:9px">$360M new</span></div>
+          <div class="ig-gantt-track">
+            <div class="ig-gantt-bar" style="left:40%;width:60%;background:#d4a843;color:#000">Origination → Close</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:24px;margin-top:10px">
+        <span style="font-size:9px;color:var(--muted)">◀ Q3 2026</span>
+        <span style="font-size:9px;color:var(--muted)">Q4 2026</span>
+        <span style="font-size:9px;color:var(--muted)">Q1 2027</span>
+        <span style="font-size:9px;color:var(--muted)">Q2 2027 ▶</span>
+      </div>
+    </div>
+    <div class="ig-kv-row">
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#10b981">11.2%</div><div class="ig-kv-label">Gross Yield</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">0.65%</div><div class="ig-kv-label">Default Rate (3yr)</div></div>
+      <div class="ig-kv"><div class="ig-kv-val">2.1×</div><div class="ig-kv-label">Avg DSCR</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">$1.1B</div><div class="ig-kv-label">Expansion Target</div></div>
+      <div class="ig-kv"><div class="ig-kv-val">12</div><div class="ig-kv-label">Credits in Pipeline</div></div>
+    </div>
+  </div>`;
+
+  if (ch.id === 'spacex') return `
+  <div class="infographic" ${s}>
+    <div class="ig-header">
+      <div class="ig-header-left">
+        <div class="ig-header-sup">June 2026 · Pre-IPO Opportunity</div>
+        <div class="ig-header-name">SpaceX IPO — Investment Case</div>
+      </div>
+      <div class="ig-hero-stat">
+        <div class="ig-hero-num" style="color:#f97316">$350B</div>
+        <div class="ig-hero-label">Implied Valuation (Tender)</div>
+      </div>
+    </div>
+    <div class="ig-section-title" style="margin-top:0;margin-bottom:10px">Sum-of-the-Parts Valuation ($B)</div>
+    <div class="ig-bar-chart" style="margin-top:0">
+      <div class="ig-bar-row"><div class="ig-bar-label">Starlink</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:100%;background:#f97316"></div></div><div class="ig-bar-val" style="color:#f97316">$80B</div></div>
+      <div class="ig-bar-row"><div class="ig-bar-label">Launch Business</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:24%;background:#f59e0b"></div></div><div class="ig-bar-val" style="color:#f59e0b">$19B</div></div>
+      <div class="ig-bar-row"><div class="ig-bar-label">Gov Contracts</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:15%;background:#d4a843"></div></div><div class="ig-bar-val">$12B</div></div>
+      <div class="ig-bar-row"><div class="ig-bar-label">Starship (NPV)</div><div class="ig-bar-track"><div class="ig-bar-fill" style="--w:31%;background:#6366f1;opacity:.7"></div></div><div class="ig-bar-val" style="color:#818cf8">$25B</div></div>
+      <div class="ig-bar-row" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)">
+        <div class="ig-bar-label" style="font-weight:700;color:var(--white)">Base Case EV</div>
+        <div class="ig-bar-track"><div class="ig-bar-fill" style="--w:58%;background:#4a5068;opacity:.8"></div></div>
+        <div class="ig-bar-val" style="color:var(--white);font-weight:700">$166B</div>
+      </div>
+    </div>
+    <div class="ig-2col" style="margin-top:20px">
+      <div>
+        <div class="ig-section-title">Starlink Revenue Ramp ($B)</div>
+        <svg viewBox="0 0 200 90" width="100%" style="overflow:visible">
+          <line x1="10" y1="72" x2="195" y2="72" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+          <line x1="10" y1="45" x2="195" y2="45" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="2,4"/>
+          <line x1="10" y1="20" x2="195" y2="20" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="2,4"/>
+          <text x="3" y="75" fill="#4a5068" font-size="7" font-family="monospace">0</text>
+          <text x="3" y="48" fill="#4a5068" font-size="7" font-family="monospace">10</text>
+          <text x="3" y="23" fill="#4a5068" font-size="7" font-family="monospace">20</text>
+          <rect x="18" y="62" width="22" height="10" rx="2" fill="#f97316" opacity=".4"/>
+          <rect x="52" y="52" width="22" height="20" rx="2" fill="#f97316" opacity=".55"/>
+          <rect x="86" y="36" width="22" height="36" rx="2" fill="#f97316" opacity=".75"/>
+          <rect x="120" y="18" width="22" height="54" rx="2" fill="#f97316"/>
+          <rect x="154" y="8" width="22" height="64" rx="2" fill="#f97316" opacity=".5" stroke="#f97316" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="29" y="58" fill="#f97316" font-size="6.5" font-family="monospace" text-anchor="middle">$4B</text>
+          <text x="63" y="48" fill="#f97316" font-size="6.5" font-family="monospace" text-anchor="middle">$8B</text>
+          <text x="97" y="32" fill="#f97316" font-size="7" font-family="monospace" text-anchor="middle">$15B</text>
+          <text x="131" y="14" fill="#f97316" font-size="7" font-weight="700" font-family="monospace" text-anchor="middle">$26B</text>
+          <text x="165" y="4" fill="#f59e0b" font-size="6.5" font-family="monospace" text-anchor="middle">$38B E</text>
+          <text x="29" y="84" fill="#4a5068" font-size="6.5" font-family="monospace" text-anchor="middle">2024</text>
+          <text x="63" y="84" fill="#4a5068" font-size="6.5" font-family="monospace" text-anchor="middle">2026E</text>
+          <text x="97" y="84" fill="#4a5068" font-size="6.5" font-family="monospace" text-anchor="middle">2027E</text>
+          <text x="131" y="84" fill="#4a5068" font-size="6.5" font-family="monospace" text-anchor="middle">2028E</text>
+          <text x="165" y="84" fill="#f59e0b" font-size="6.5" font-family="monospace" text-anchor="middle">Bull</text>
+        </svg>
+      </div>
+      <div>
+        <div class="ig-section-title">Scenario Analysis</div>
+        <table class="ig-table" style="margin-top:4px">
+          <thead><tr><th>Scenario</th><th>EV</th><th>Entry IRR</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#22c55e">● Bull</td><td style="color:#22c55e">$450B+</td><td style="color:#22c55e">+35%</td></tr>
+            <tr><td style="color:#f59e0b">● Base</td><td>$280B</td><td style="color:#f59e0b">+12%</td></tr>
+            <tr><td style="color:#ef4444">● Bear</td><td style="color:#ef4444">$140B</td><td style="color:#ef4444">−20%</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2)">
+          <div style="font-size:9px;font-weight:700;color:#f97316;margin-bottom:3px">⚡ Tender Closes in 14 Days</div>
+          <div style="font-size:10px;color:var(--platinum);line-height:1.5">$150M proposed at $350B valuation — 110% premium to base case EV. Access risk is the larger concern.</div>
+        </div>
+      </div>
+    </div>
+    <div class="ig-kv-row">
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f97316">$350B</div><div class="ig-kv-label">Tender Valuation</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">$8B</div><div class="ig-kv-label">Starlink Rev 2026E</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#22c55e">72%</div><div class="ig-kv-label">Global Launch Share</div></div>
+      <div class="ig-kv"><div class="ig-kv-val">$150M</div><div class="ig-kv-label">Proposed Stake</div></div>
+      <div class="ig-kv"><div class="ig-kv-val" style="color:#f59e0b">2027-28</div><div class="ig-kv-label">IPO Timeline</div></div>
+    </div>
+  </div>`;
+
+  return '';
+}
+
+// ══════════════════════════════════════════
+// PODCAST VIEW
+// ══════════════════════════════════════════
+function buildPodcastView(ch, content, m) {
+  const dur = ch.readTime[m.id] * 60;
+  const pods = PODCASTS[ch.id] || [];
+  const relatedHTML = pods.map(p => `
+    <div class="related-pod-card" style="--rpc-color:${p.color}">
+      <div class="rpc-duration">▶ ${p.duration}</div>
+      <div class="rpc-title">${p.title}</div>
+      <div class="rpc-guest">${p.guest}</div>
+      <div class="rpc-desc">${p.desc}</div>
+    </div>`).join('');
+  return `
+  <div class="podcast-view">
+    <div class="podcast-hero" style="--ch-color:${ch.color};--ch-color-dim:${ch.colorDim}">
+      <div class="podcast-art">${ch.icon}</div>
+      <div class="podcast-info">
+        <div class="podcast-cat">${ch.title}</div>
+        <div class="podcast-title">${content.headline}</div>
+        <div class="podcast-meta">${m.name} · ${m.depthLabel} · ${ch.readTime[m.id]} min listen</div>
+        <div class="podcast-controls">
+          <button class="podcast-play" id="play-btn" onclick="togglePlay()">▶</button>
+          <div class="podcast-wv" id="waveform">${generateWaveformHTML()}</div>
+          <button class="podcast-speed" id="speed-btn" onclick="cycleSpeed()">${STATE.player.speed}x</button>
+        </div>
+        <div class="podcast-progress" id="progress-track" onclick="seekPlayer(event)">
+          <div class="podcast-progress-fill" id="progress-fill" style="width:0%"></div>
+          <div class="podcast-progress-thumb" id="progress-thumb" style="left:0%"></div>
+        </div>
+        <div class="podcast-time"><span id="time-current">0:00</span><span id="time-total">${formatTime(dur)}</span></div>
+      </div>
+    </div>
+    <div style="padding:0 4px">
+      <div class="news-cards-label" style="margin-bottom:14px">Curated Listening — Personalized for ${m.name}</div>
+      <div class="related-pod-grid">${relatedHTML}</div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// INFOGRAPHICS VIEW
+// ══════════════════════════════════════════
+function buildInfographicsView(ch, content, m) {
+  const otherChapters = CHAPTERS.filter(c => c.id !== ch.id);
+  const relatedCards = otherChapters.map(c => `
+    <div class="ig-related-card" style="--rc-color:${c.color}" onclick="loadChapter(${c.index})">
+      <div class="ig-related-icon">${c.icon}</div>
+      <div class="ig-related-name">${c.short}</div>
+      <div class="ig-related-meta">${c.readTime[m.id]}m · ${Math.round(parseFloat(c.memberDepth[m.id]))}% depth</div>
+    </div>`).join('');
+  return `
+  <div class="ig-full-view">
+    ${buildInfographic(ch, m)}
+    <div class="ig-section">
+      <div class="ig-section-title">Explore Other Infographics</div>
+      <div class="ig-related-grid">${relatedCards}</div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// CONTENT MODE SWITCHING
+// ══════════════════════════════════════════
+function switchMode(mode) {
+  STATE.contentMode = mode;
+  document.querySelectorAll('.content-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.mode === mode)
+  );
+  if (STATE.player.interval) clearInterval(STATE.player.interval);
+  STATE.player.playing = false;
+  const ch = CHAPTERS[STATE.chapter];
+  const content = ch.content[STATE.member];
+  const m = MEMBERS[STATE.member];
+  renderCanvas(ch, content, m);
+}
+
+function renderCanvas(ch, content, m) {
+  const canvas = document.getElementById('chapter-canvas');
+  canvas.style.opacity = '0';
+  canvas.style.transform = 'translateY(8px)';
+  setTimeout(() => {
+    if (STATE.contentMode === 'podcast') {
+      canvas.className = 'chapter-canvas canvas-immersive';
+      canvas.innerHTML = buildPodcastView(ch, content, m);
+      initPlayer(ch, m);
+    } else if (STATE.contentMode === 'infographics') {
+      canvas.className = 'chapter-canvas canvas-immersive';
+      canvas.innerHTML = buildInfographicsView(ch, content, m);
+    } else {
+      canvas.className = 'chapter-canvas';
+      canvas.innerHTML = buildChapterHTML(ch, content, m);
+      canvas.querySelectorAll('.beat').forEach((el, i) => {
+        el.style.animationDelay = `${i * 90 + 100}ms`;
+      });
+      animateMetrics(ch.metrics);
+      if (['sarah','james'].includes(STATE.member)) {
+        const dd = canvas.querySelector('.deep-dive-content');
+        if (dd) dd.classList.add('open');
+      }
+    }
+    canvas.style.transition = 'opacity .35s,transform .35s';
+    canvas.style.opacity = '1';
+    canvas.style.transform = 'none';
+    document.getElementById('center-stage').scrollTo({ top: 0, behavior: 'smooth' });
+    updateReadingBar();
+  }, 160);
+}
+
+// ══════════════════════════════════════════
+// METRICS ANIMATION
+// ══════════════════════════════════════════
+function animateMetrics(metrics) {
+  document.querySelectorAll('.metric-value').forEach((el, i) => {
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix;
+    const neg = el.dataset.neg === 'true';
+    const decimals = suffix === '%' || suffix === '' ? 1 : 0;
+    let start = null;
+    const duration = 1200 + i * 150;
+    const step = ts => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (neg ? '-' : '') + (target * eased).toFixed(decimals) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+// ══════════════════════════════════════════
+// SPARKLINE
+// ══════════════════════════════════════════
+function generateSparkline(trend) {
+  const pts = Array.from({length:10}, (_,i) => {
+    const base = trend==='up' ? i*2.2 : trend==='down' ? 22-i*2.2 : 10+Math.sin(i)*4;
+    return 4 + base + (Math.random()-0.5)*3;
+  });
+  const max = Math.max(...pts), min = Math.min(...pts);
+  const norm = pts.map(p => 24-((p-min)/(max-min))*20);
+  const d = norm.map((y,i)=>`${i===0?'M':'L'} ${i*13} ${y}`).join(' ');
+  const color = trend==='up'?'#22c55e':trend==='down'?'#ef4444':'#94a3b8';
+  return `<polyline points="${norm.map((y,i)=>i*13+','+y).join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>`;
+}
+
+// ══════════════════════════════════════════
+// AUDIO PLAYER
+// ══════════════════════════════════════════
+function initPlayer(ch, m) {
+  STATE.player.playing = false;
+  STATE.player.progress = 0;
+  STATE.player.duration = ch.readTime[m.id] * 60;
+  if (STATE.player.interval) clearInterval(STATE.player.interval);
+  updatePlayerUI();
+}
+
+function togglePlay() {
+  STATE.player.playing = !STATE.player.playing;
+  const btn = document.getElementById('play-btn');
+  if (btn) btn.textContent = STATE.player.playing ? '⏸' : '▶';
+  const bars = document.querySelectorAll('.wv-bar');
+  bars.forEach(b => b.style.animationPlayState = STATE.player.playing ? 'running' : 'paused');
+
+  if (STATE.player.playing) {
+    STATE.player.interval = setInterval(() => {
+      STATE.player.progress += 1 / STATE.player.duration * STATE.player.speed;
+      if (STATE.player.progress >= 1) { STATE.player.progress = 1; STATE.player.playing = false; clearInterval(STATE.player.interval); if (btn) btn.textContent = '▶'; }
+      updatePlayerUI();
+    }, 1000);
+  } else {
+    clearInterval(STATE.player.interval);
+  }
+}
+
+function updatePlayerUI() {
+  const fill = document.getElementById('progress-fill');
+  const thumb = document.getElementById('progress-thumb');
+  const cur = document.getElementById('time-current');
+  if (fill) fill.style.width = (STATE.player.progress * 100) + '%';
+  if (thumb) thumb.style.left = (STATE.player.progress * 100) + '%';
+  if (cur) cur.textContent = formatTime(STATE.player.progress * STATE.player.duration);
+}
+
+function seekPlayer(e) {
+  const track = document.getElementById('progress-track');
+  if (!track) return;
+  const rect = track.getBoundingClientRect();
+  STATE.player.progress = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  updatePlayerUI();
+}
+
+function cycleSpeed() {
+  const speeds = [0.75, 1, 1.25, 1.5, 2];
+  const idx = speeds.indexOf(STATE.player.speed);
+  STATE.player.speed = speeds[(idx + 1) % speeds.length];
+  const btn = document.getElementById('speed-btn');
+  if (btn) btn.textContent = STATE.player.speed + 'x';
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// ══════════════════════════════════════════
+// WAVEFORM
+// ══════════════════════════════════════════
+function generateWaveformHTML() {
+  return Array.from({length:20},(_,i)=>`<div class="wv-bar" style="height:${8+Math.random()*14}px;animation:wv${i} ${.4+Math.random()*.5}s ease-in-out infinite alternate;animation-play-state:paused"></div>`).join('');
+}
+
+function generateWaveformCSS() {
+  const style = document.createElement('style');
+  let css = '';
+  for (let i=0;i<20;i++) {
+    const min = 6+Math.random()*6;
+    const max = min+8+Math.random()*10;
+    css += `@keyframes wv${i}{from{height:${min}px}to{height:${max}px}}`;
+  }
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
+// ══════════════════════════════════════════
+// DEEP DIVE
+// ══════════════════════════════════════════
+function toggleDeepDive(btn) {
+  const dd = document.getElementById('deep-dive');
+  if (!dd) return;
+  dd.classList.toggle('open');
+  btn.querySelector('span:last-child').textContent = dd.classList.contains('open') ? '▴' : '▾';
+}
+
+// ══════════════════════════════════════════
+// AI PANEL
+// ══════════════════════════════════════════
+function togglePanel() {
+  STATE.panelOpen = !STATE.panelOpen;
+  const panel = document.getElementById('ai-panel');
+  panel.style.width = STATE.panelOpen ? '' : '0';
+  panel.style.opacity = STATE.panelOpen ? '' : '0';
+  panel.style.overflow = STATE.panelOpen ? '' : 'hidden';
+}
+
+function addAIMessage(text) {
+  const conv = document.getElementById('ai-conversation');
+  const msg = document.createElement('div');
+  msg.className = 'ai-msg ai';
+  msg.innerHTML = '';
+  conv.appendChild(msg);
+  conv.scrollTop = conv.scrollHeight;
+  typewrite(msg, text);
+}
+
+function addUserMessage(text) {
+  const conv = document.getElementById('ai-conversation');
+  const msg = document.createElement('div');
+  msg.className = 'ai-msg user';
+  msg.textContent = text;
+  conv.appendChild(msg);
+  conv.scrollTop = conv.scrollHeight;
+}
+
+function showThinking() {
+  const conv = document.getElementById('ai-conversation');
+  const el = document.createElement('div');
+  el.className = 'ai-thinking';
+  el.id = 'ai-thinking';
+  el.innerHTML = '<div class="think-dot"></div><div class="think-dot"></div><div class="think-dot"></div>';
+  conv.appendChild(el);
+  conv.scrollTop = conv.scrollHeight;
+}
+
+function hideThinking() {
+  const el = document.getElementById('ai-thinking');
+  if (el) el.remove();
+}
+
+function sendQuestion(text) {
+  const input = document.getElementById('ai-input');
+  const q = text || input.value.trim();
+  if (!q) return;
+  if (input) input.value = '';
+  addUserMessage(q);
+  showThinking();
+  const delay = 1200 + Math.random() * 1000;
+  setTimeout(() => {
+    hideThinking();
+    const response = getAIResponse(q);
+    addAIMessage(response);
+  }, delay);
+}
+
+function getAIResponse(q) {
+  const ch = CHAPTERS[STATE.chapter];
+  const m = MEMBERS[STATE.member];
+  const content = ch.content[STATE.member];
+  // Build a contextual response from the chapter content
+  const responses = [
+    `Based on the ${ch.title} analysis framed for your ${m.depthLabel} perspective: ${content.beats[0]?.text?.slice(0,200)}… The key implication for your role is highlighted in the action items above.`,
+    `Great question. From the ${m.name} lens, the most relevant insight here is: ${content.beats[1]?.text?.slice(0,200) || content.beats[0]?.text?.slice(0,200)}. Would you like me to go deeper on any specific aspect?`,
+    `The data supports this view: ${ch.metrics[0].value}${ch.metrics[0].suffix} ${ch.metrics[0].delta}. In context of your question: ${content.headline} — the core thesis remains intact. ${content.deck}`,
+    `For ${m.name} specifically, the most actionable part of this analysis is the ${content.beats.find(b=>b.type==='action')?.label || 'strategic recommendation'}. ${content.beats.find(b=>b.type==='action')?.text?.slice(0,180) || 'See the full chapter for the recommended next steps.'}`,
+  ];
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function renderSuggestions(chIdx) {
+  const m = MEMBERS[STATE.member];
+  const chips = document.getElementById('suggestion-chips');
+  if (!chips) return;
+  chips.innerHTML = '';
+  const suggestions = m.suggestions[chIdx] || m.suggestions[0];
+  suggestions.forEach(s => {
+    const chip = document.createElement('button');
+    chip.className = 'suggestion-chip';
+    chip.textContent = s;
+    chip.onclick = () => sendQuestion(s);
+    chips.appendChild(chip);
+  });
+}
+
+// ══════════════════════════════════════════
+// TYPEWRITER
+// ══════════════════════════════════════════
+function typewrite(el, text, speed = 18) {
+  el.textContent = '';
+  let i = 0;
+  const cursor = document.createElement('span');
+  cursor.style.cssText = 'border-right:2px solid var(--electric);margin-left:1px;animation:pulse-dot .7s infinite';
+  el.appendChild(cursor);
+  const tick = setInterval(() => {
+    if (i < text.length) {
+      el.insertBefore(document.createTextNode(text[i++]), cursor);
+      el.parentElement?.scrollTo?.(0, 9999);
+    } else {
+      clearInterval(tick);
+      cursor.remove();
+    }
+  }, speed);
+}
+
+// ══════════════════════════════════════════
+// READING PROGRESS
+// ══════════════════════════════════════════
+function updateReadingBar() {
+  const pct = ((STATE.chapter) / (CHAPTERS.length - 1)) * 100;
+  document.getElementById('reading-bar').style.width = pct + '%';
+}
+
+// ══════════════════════════════════════════
+// SWITCH MEMBER
+// ══════════════════════════════════════════
+function switchMember() {
+  if (STATE.player.interval) clearInterval(STATE.player.interval);
+  STATE.readChapters.clear();
+  STATE.contentMode = 'brief';
+  document.getElementById('screen-brief').classList.add('hidden');
+  document.getElementById('screen-identity').classList.remove('hidden');
+  document.querySelectorAll('.member-card').forEach(c => c.classList.remove('dimmed','selected'));
+  document.getElementById('ai-conversation').innerHTML = '';
+}
+
+// ══════════════════════════════════════════
+// PREP MODAL SYSTEM
+// ══════════════════════════════════════════
+const PREP_CONFIG = {
+  sim:{icon:'▷',bg:'rgba(99,102,241,.12)',title:'Simulation Room',subtitle:'Flash-card rehearsal · Rate your readiness on the hardest challenges'},
+  stakes:{icon:'⚡',bg:'rgba(212,168,67,.1)',title:'Stakes Detector',subtitle:'If this decision is made today — here\'s what it means for you and everyone else'},
+};
+
+function openPrepModal(type) {
+  const cfg = PREP_CONFIG[type];
+  document.getElementById('prep-modal-icon').textContent = cfg.icon;
+  document.getElementById('prep-modal-icon').style.background = cfg.bg;
+  document.getElementById('prep-modal-title').textContent = cfg.title;
+  document.getElementById('prep-modal-subtitle').textContent = cfg.subtitle;
+  const body = document.getElementById('prep-modal-body');
+  if (type === 'sim') { body.innerHTML = buildSimRoom(); initSimRoom(); }
+  else { body.innerHTML = buildStakes(); initStakes(STATE.member || 'marcus', STATE.chapter); }
+  document.getElementById('prep-modal').classList.add('open');
+  document.addEventListener('keydown', handleModalKey);
+}
+
+function closePrepModal() {
+  document.getElementById('prep-modal').classList.remove('open');
+  document.removeEventListener('keydown', handleModalKey);
+}
+
+function handleModalKey(e) { if (e.key === 'Escape') closePrepModal(); }
+
+// ══════════════════════════════════════════
+// SIMULATION ROOM — flashcard mode
+// ══════════════════════════════════════════
+let SIM = {idx:0, scores:{}, revealed:false, rated:false};
+
+function buildSimRoom() {
+  const chNames = ['AI Finance','Digital Assets','Priv. Credit','SpaceX IPO'];
+  const chIcons = ['◈','⬡','◎','◆'];
+  const scoreRows = chNames.map((name,i) => `
+    <div class="sim-score-item" id="sim-si-${i}">
+      <div class="sim-score-icon">${chIcons[i]}</div>
+      <div class="sim-score-name">${name}</div>
+      <div class="sim-score-dots">${[0,1,2].map(j=>`<div class="sim-score-dot" id="sim-dot-${i}-${j}"></div>`).join('')}</div>
+    </div>`).join('');
+  return `
+  <div class="sim-layout">
+    <div class="sim-main">
+      <div class="sim-prog-row" id="sim-prog">
+        ${SIM_SCRIPTS.map((_,i)=>`<div class="sim-prog-seg" id="sim-ps-${i}"></div>`).join('')}
+      </div>
+      <div class="sim-card-area" id="sim-card-area"></div>
+      <div class="sim-next-row" id="sim-next-row" style="display:none">
+        <button class="sim-next-btn" id="sim-next-btn" onclick="simNext()">Next →</button>
+        <span class="sim-next-lbl" id="sim-next-lbl"></span>
+      </div>
+    </div>
+    <div class="sim-sidebar">
+      <div class="sim-sidebar-title">Readiness</div>
+      ${scoreRows}
+      <div class="sim-overall-box">
+        <div class="sim-overall-pct" id="sim-pct" style="color:var(--member-color)">—</div>
+        <div class="sim-overall-lbl">Overall</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function initSimRoom() {
+  SIM = {idx:0, scores:{}, revealed:false, rated:false};
+  renderSimCard(0);
+}
+
+function renderSimCard(idx) {
+  if (idx >= SIM_SCRIPTS.length) { simComplete(); return; }
+  SIM.idx = idx; SIM.revealed = false; SIM.rated = false;
+  const q = SIM_SCRIPTS[idx];
+  const chLabelMap = ['◈ AI in Finance','◈ AI in Finance','⬡ Digital Assets','⬡ Digital Assets','◎ Private Credit','◎ Private Credit','◆ SpaceX IPO','◆ SpaceX IPO'];
+  document.querySelectorAll('.sim-prog-seg').forEach((s,i) => {
+    s.className = 'sim-prog-seg' + (i<idx?' done':i===idx?' active':'');
+  });
+  const area = document.getElementById('sim-card-area');
+  area.innerHTML = `
+    <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">
+      ${chLabelMap[idx]||''} &nbsp;·&nbsp; ${idx+1} / ${SIM_SCRIPTS.length}
+    </div>
+    <div class="sim-question-card" style="--sqc:${q.chColor}">
+      <div class="sim-q-who">
+        <div class="sim-q-av" style="--qac:${q.askerColor};background:${q.askerColor}22;color:${q.askerColor}">${q.asker}</div>
+        <div class="sim-q-name" style="--qac:${q.askerColor}">${q.askerName}</div>
+      </div>
+      <div class="sim-q-text">${q.q}</div>
+    </div>
+    <button class="sim-reveal-btn" id="sim-reveal" onclick="simReveal()">Show model answer →</button>
+    <div id="sim-answer-slot"></div>
+    <div class="sim-rate-section" id="sim-rate-section" style="display:none">
+      <div class="sim-rate-label">How well did you know this?</div>
+      <div class="sim-rate-btns">
+        <button class="sim-rate-btn gap" onclick="simRate(0,this)">✕ Gap<span>didn't know it</span></button>
+        <button class="sim-rate-btn ok"  onclick="simRate(1,this)">~ OK<span>partial answer</span></button>
+        <button class="sim-rate-btn strong" onclick="simRate(2,this)">★ Strong<span>had it cold</span></button>
+      </div>
+    </div>`;
+  document.getElementById('sim-next-row').style.display = 'none';
+}
+
+function simReveal() {
+  if (SIM.revealed) return;
+  SIM.revealed = true;
+  const q = SIM_SCRIPTS[SIM.idx];
+  document.getElementById('sim-reveal').style.display = 'none';
+  document.getElementById('sim-answer-slot').innerHTML = `
+    <div class="sim-answer-reveal">
+      <div class="sim-answer-label">Model Answer</div>
+      <div class="sim-answer-text">${q.model}</div>
+    </div>`;
+  document.getElementById('sim-rate-section').style.display = 'flex';
+}
+
+function simRate(score, btn) {
+  if (SIM.rated) return;
+  SIM.rated = true;
+  btn.classList.add('chosen');
+  document.querySelectorAll('.sim-rate-btn').forEach(b => { if (b !== btn) b.style.opacity = '.3'; b.style.pointerEvents='none'; });
+  const chIdx = [0,0,1,1,2,2,3,3][SIM.idx] ?? 0;
+  if (SIM.scores[chIdx] === undefined || score > SIM.scores[chIdx]) SIM.scores[chIdx] = score;
+  // Update sidebar dots (0=gap, 1=ok, 2=strong → fill 0, 1, or 2 dots)
+  const dotEls = [0,1,2].map(i => document.getElementById(`sim-dot-${chIdx}-${i}`));
+  dotEls.forEach((d,i) => { if (d) d.classList.toggle('fill', i < score + (score>0?1:0)); });
+  // Update overall pct
+  const vals = Object.values(SIM.scores);
+  const pct = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0) / (vals.length*2) * 100) : 0;
+  const pctEl = document.getElementById('sim-pct');
+  if (pctEl) { pctEl.textContent = pct+'%'; pctEl.style.color = pct>70?'#22c55e':pct>40?'#f59e0b':'#ef4444'; }
+  // Show next
+  const nextRow = document.getElementById('sim-next-row');
+  const nextLbl = document.getElementById('sim-next-lbl');
+  const remaining = SIM_SCRIPTS.length - SIM.idx - 1;
+  if (nextLbl) nextLbl.textContent = remaining > 0 ? `${remaining} question${remaining>1?'s':''} left` : 'Last question';
+  document.getElementById('sim-next-btn').textContent = remaining > 0 ? 'Next →' : 'See results →';
+  if (nextRow) nextRow.style.display = 'flex';
+}
+
+function simNext() { renderSimCard(SIM.idx + 1); }
+
+function simComplete() {
+  const vals = Object.values(SIM.scores);
+  const pct = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0) / (SIM_SCRIPTS.length*2) * 100) : 0;
+  const color = pct>70?'#22c55e':pct>40?'#f59e0b':'#ef4444';
+  document.querySelectorAll('.sim-prog-seg').forEach(s=>s.className='sim-prog-seg done');
+  document.getElementById('sim-next-row').style.display = 'none';
+  document.getElementById('sim-card-area').innerHTML = `
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:20px">
+      <div style="font-size:52px;font-weight:800;font-family:var(--mono);letter-spacing:-.04em;color:${color}">${pct}%</div>
+      <div style="font-size:15px;font-weight:700;color:var(--white)">${pct>70?'Ready to walk in':'Review flagged topics'}</div>
+      <div style="font-size:12px;color:var(--muted);max-width:360px;line-height:1.7">
+        ${pct>70?'You handled the hardest challenges the room will throw at you.':'Check the red dots in the tracker — those are the sections to re-read before the meeting.'}
+      </div>
+      <button onclick="initSimRoom()" style="margin-top:8px;padding:10px 24px;background:var(--electric);border:none;border-radius:8px;color:#fff;font-weight:600;font-size:12px;cursor:pointer;font-family:var(--font)">Retry →</button>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// STAKES DETECTOR
+// ══════════════════════════════════════════
+function buildStakes() {
+  const memberBtns = Object.values(MEMBERS).map(m => `
+    <button class="sd-av-btn" id="sd-av-${m.id}" style="--avr-color:${m.color}" onclick="initStakes('${m.id}',SD.chIdx)">
+      <div class="sd-av-ring" style="background:${m.color}18;color:${m.color}">${m.initials}</div>
+      <div class="sd-av-name">${m.name.split(' ')[0]}</div>
+    </button>`).join('');
+  const chTabs = STAKES.map((s,i) => `
+    <button class="sd-ch-tab" id="sd-cht-${i}" data-chi="${i}" style="--sdct:${s.chColor}" onclick="initStakes(SD.memberId,${i})">${s.chIcon}</button>`).join('');
+  return `
+  <div class="sd-layout">
+    <div class="sd-top-bar">
+      <div class="sd-member-strip">${memberBtns}</div>
+    </div>
+    <div class="sd-chapter-tabs">${chTabs}</div>
+    <div class="sd-body" id="sd-body"></div>
+  </div>`;
+}
+
+const SD = {memberId:'marcus', chIdx:0};
+
+function initStakes(memberId, chIdx) {
+  SD.memberId = memberId; SD.chIdx = chIdx;
+  // Highlight member
+  document.querySelectorAll('.sd-av-btn').forEach(b => b.classList.toggle('active', b.id===`sd-av-${memberId}`));
+  // Highlight chapter tab
+  document.querySelectorAll('.sd-ch-tab').forEach(b => b.classList.toggle('active', +b.dataset.chi===chIdx));
+  const mem = MEMBERS[memberId];
+  const item = STAKES[chIdx];
+  if (!mem || !item) return;
+  const impactColors = {0:'#4a5068',1:'#4a5068',2:'#f59e0b',3:'#f97316',4:'#ef4444',5:'#ef4444'};
+  const impactLabels = {0:'—',1:'Low',2:'Moderate',3:'High',4:'Critical',5:'Critical'};
+  const myStake = item.stakes[memberId];
+  const myImpact = myStake?.impact || 0;
+  const myColor = impactColors[myImpact];
+  const othersHTML = Object.entries(item.stakes)
+    .filter(([id]) => id !== memberId)
+    .map(([id, st]) => {
+      const om = MEMBERS[id];
+      const col = impactColors[st.impact];
+      return `
+      <div class="sd-stake-row">
+        <div class="sd-stake-av" style="--sav-color:${om.color};background:${om.color}18;color:${om.color}">${om.initials}</div>
+        <div class="sd-stake-info">
+          <div class="sd-stake-who" style="--sav-color:${om.color}">${om.name}</div>
+          <div class="sd-stake-text">${st.text}</div>
+          <div class="sd-impact-bar">${[1,2,3,4,5].map(i=>`<div class="sd-impact-pip${i<=st.impact?' fill':''}" style="--sid-color:${col}"></div>`).join('')}</div>
+        </div>
+      </div>`;
+    }).join('');
+  document.getElementById('sd-body').innerHTML = `
+    <div class="sd-decision-lbl">Decision on the table</div>
+    <div class="sd-decision-text">${item.decision}</div>
+    <div class="sd-stakes-label">If this happens today…</div>
+    <div class="sd-stake-row you">
+      <div class="sd-stake-av" style="--sav-color:${mem.color};background:${mem.color}22;color:${mem.color}">${mem.initials}</div>
+      <div class="sd-stake-info">
+        <div class="sd-stake-who" style="--sav-color:${mem.color}">
+          ${mem.name}
+          <span class="sd-you-badge">YOU</span>
+          <span style="margin-left:auto;font-size:9px;font-weight:700;color:${myColor};font-family:var(--mono)">${impactLabels[myImpact]}</span>
+        </div>
+        <div class="sd-stake-text">${myStake?.text || '—'}</div>
+        <div class="sd-impact-bar">${[1,2,3,4,5].map(i=>`<div class="sd-impact-pip${i<=myImpact?' fill':''}" style="--sid-color:${myColor}"></div>`).join('')}</div>
+      </div>
+    </div>
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+    ${othersHTML}`;
+}
+
+// ══════════════════════════════════════════
+// KEYBOARD
+// ══════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' && STATE.chapter < CHAPTERS.length-1) loadChapter(STATE.chapter+1);
+  if (e.key === 'ArrowLeft' && STATE.chapter > 0) loadChapter(STATE.chapter-1);
+  if (e.key === ' ' && document.activeElement !== document.getElementById('ai-input')) { e.preventDefault(); togglePlay(); }
+});
+
+document.getElementById('ai-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuestion(); }
+});
+
+init();
+</script>
+
+<!-- ══ MEETING PREP MODAL ══ -->
+<div id="prep-modal" class="prep-modal" role="dialog" aria-modal="true">
+  <div class="prep-modal-bg" onclick="closePrepModal()"></div>
+  <div class="prep-modal-panel">
+    <div class="prep-modal-header" id="prep-modal-header">
+      <div class="prep-modal-icon" id="prep-modal-icon"></div>
+      <div class="prep-modal-title-block">
+        <div class="prep-modal-title" id="prep-modal-title"></div>
+        <div class="prep-modal-subtitle" id="prep-modal-subtitle"></div>
+      </div>
+      <button class="prep-modal-close" onclick="closePrepModal()">✕</button>
+    </div>
+    <div class="prep-modal-body" id="prep-modal-body"></div>
+  </div>
+</div>
+</body>
+</html>
