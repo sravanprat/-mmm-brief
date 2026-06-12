@@ -164,7 +164,6 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
 .highlight-pulse{animation:highlight-flash .6s ease forwards}
 @keyframes highlight-flash{0%{box-shadow:0 0 0 3px var(--cc-color,#f59e0b)}100%{box-shadow:none}}
 /* ── EXPERTISE / DEPTH CONTROLS ── */
-.brief-controls{display:flex;align-items:center;gap:12px;padding:10px 28px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:var(--depth-1);flex-shrink:0}
 .brief-controls-group{display:flex;align-items:center;gap:4px}
 .brief-controls-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px;white-space:nowrap}
 .ctrl-pill{padding:4px 10px;border-radius:14px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s;white-space:nowrap}
@@ -873,6 +872,13 @@ html,body{height:100%;overflow:hidden;background:var(--depth-1);color:var(--whit
       <button class="content-tab" data-mode="news" onclick="switchMode('news')">
         <span class="tab-icon">◈</span> Latest News
       </button>
+    </div>
+    <div id="brief-controls-bar" style="display:none;align-items:center;gap:12px;padding:8px 28px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:var(--depth-2);flex-shrink:0">
+      <span class="brief-controls-label">Expertise</span>
+      <div class="brief-controls-group" id="ctrl-expertise"></div>
+      <div class="ctrl-divider"></div>
+      <span class="brief-controls-label">Depth</span>
+      <div class="brief-controls-group" id="ctrl-depth"></div>
     </div>
     <div class="chapter-canvas" id="chapter-canvas"></div>
   </div>
@@ -1787,25 +1793,8 @@ function buildChapterHTML(ch, content, m) {
 
   const autoDeep = STATE.depth === 'deep' || STATE.expertise === 'expert';
   const chColor = ch.color;
-  const controlsHTML = `
-    <div class="brief-controls" style="--ch-ctrl-bg:${ch.colorDim};--ch-ctrl-border:${ch.colorBorder};--ch-ctrl-color:${ch.color}">
-      <span class="brief-controls-label">Expertise</span>
-      <div class="brief-controls-group">
-        <button class="ctrl-pill${STATE.expertise==='novice'?' active':''}" onclick="switchExpertise('novice')">Novice</button>
-        <button class="ctrl-pill${STATE.expertise==='intermediate'?' active':''}" onclick="switchExpertise('intermediate')">Intermediate</button>
-        <button class="ctrl-pill${STATE.expertise==='expert'?' active':''}" onclick="switchExpertise('expert')">Expert</button>
-      </div>
-      <div class="ctrl-divider"></div>
-      <span class="brief-controls-label">Depth</span>
-      <div class="brief-controls-group">
-        <button class="ctrl-pill${STATE.depth==='short'?' active':''}" onclick="switchDepth('short')">Short</button>
-        <button class="ctrl-pill${STATE.depth==='standard'?' active':''}" onclick="switchDepth('standard')">Standard</button>
-        <button class="ctrl-pill${STATE.depth==='deep'?' active':''}" onclick="switchDepth('deep')">Deep Research</button>
-      </div>
-    </div>`;
 
   return `
-    ${controlsHTML}
     <div class="ch-hero" style="--ch-color:${ch.color};--ch-color-dim:${ch.colorDim};--ch-color-border:${ch.colorBorder}">
       <div class="ch-category-badge">${ch.icon} ${ch.title}</div>
       <h1 class="ch-headline">${content.headline}</h1>
@@ -2233,15 +2222,39 @@ function buildInfographicsView(ch, content, m) {
 // ══════════════════════════════════════════
 // EXPERTISE & DEPTH CONTROLS
 // ══════════════════════════════════════════
+function updateControlsBar(ch) {
+  const bar = document.getElementById('brief-controls-bar');
+  if (!bar) return;
+  const isBrief = STATE.contentMode === 'brief';
+  bar.style.display = isBrief ? 'flex' : 'none';
+  if (!isBrief) return;
+  const color = ch ? ch.color : 'var(--electric)';
+  const dim = ch ? ch.colorDim : 'rgba(99,102,241,0.12)';
+  const border = ch ? ch.colorBorder : 'rgba(99,102,241,0.25)';
+  bar.style.setProperty('--ch-ctrl-color', color);
+  bar.style.setProperty('--ch-ctrl-bg', dim);
+  bar.style.setProperty('--ch-ctrl-border', border);
+  const expertise = document.getElementById('ctrl-expertise');
+  if (expertise) expertise.innerHTML = ['novice','intermediate','expert'].map(l =>
+    `<button class="ctrl-pill${STATE.expertise===l?' active':''}" onclick="switchExpertise('${l}')">${l.charAt(0).toUpperCase()+l.slice(1)}</button>`
+  ).join('');
+  const depth = document.getElementById('ctrl-depth');
+  if (depth) depth.innerHTML = [['short','Short'],['standard','Standard'],['deep','Deep Research']].map(([v,label]) =>
+    `<button class="ctrl-pill${STATE.depth===v?' active':''}" onclick="switchDepth('${v}')">${label}</button>`
+  ).join('');
+}
+
 function switchExpertise(level) {
   STATE.expertise = level;
   buildChapterNav();
   reRenderBrief();
+  updateControlsBar(CHAPTERS[STATE.chapter]);
 }
 
 function switchDepth(level) {
   STATE.depth = level;
   reRenderBrief();
+  updateControlsBar(CHAPTERS[STATE.chapter]);
 }
 
 function reRenderBrief() {
@@ -2280,6 +2293,7 @@ function renderCanvas(ch, content, m) {
   canvas.style.opacity = '0';
   canvas.style.transform = 'translateY(8px)';
   setTimeout(() => {
+    updateControlsBar(ch);
     if (STATE.contentMode === 'podcast') {
       canvas.className = 'chapter-canvas canvas-immersive';
       canvas.innerHTML = buildPodcastView(ch, content, m);
