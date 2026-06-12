@@ -1633,7 +1633,7 @@ function buildChapterNav() {
       <div class="ch-info">
         <div class="ch-title">${ch.short}</div>
         <div class="ch-meta">${ch.content[STATE.member].headline.slice(0,32)}…</div>
-        <div style="margin-top:4px;display:flex;align-items:center;gap:4px">
+        <div class="ch-badge-row" style="margin-top:4px;display:flex;align-items:center;gap:4px">
           <span class="ch-expertise ${exp}">${expLabel}</span>
           <span class="ch-expertise" style="background:rgba(255,255,255,.06);color:var(--muted)">${getDepth(i) === 'deep' ? 'Deep' : getDepth(i) === 'short' ? 'Short' : 'Standard'}</span>
         </div>
@@ -2263,16 +2263,29 @@ function updateControlsBar(ch) {
   ).join('');
 }
 
+function updateNavBadges(idx) {
+  const item = document.getElementById(`ch-nav-${idx}`);
+  if (!item) return;
+  const exp = getExpertise(idx);
+  const dep = getDepth(idx);
+  const expLabel = exp.charAt(0).toUpperCase() + exp.slice(1);
+  const depLabel = dep === 'deep' ? 'Deep' : dep === 'short' ? 'Short' : 'Standard';
+  const badgeRow = item.querySelector('.ch-badge-row');
+  if (badgeRow) badgeRow.innerHTML = `
+    <span class="ch-expertise ${exp}">${expLabel}</span>
+    <span class="ch-expertise" style="background:rgba(255,255,255,.06);color:var(--muted)">${depLabel}</span>`;
+}
+
 function switchExpertise(level) {
   STATE.expertise[STATE.chapter] = level;
-  buildChapterNav();
+  updateNavBadges(STATE.chapter);
   reRenderBrief();
   updateControlsBar(CHAPTERS[STATE.chapter]);
 }
 
 function switchDepth(level) {
   STATE.depth[STATE.chapter] = level;
-  buildChapterNav();
+  updateNavBadges(STATE.chapter);
   reRenderBrief();
   updateControlsBar(CHAPTERS[STATE.chapter]);
 }
